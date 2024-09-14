@@ -1,13 +1,16 @@
+import Sidebar from "@/components/Sidebar"
 import { Outlet } from "react-router-dom"
 
 const SharedLayout = () => {
   return (
-    <div>
-      <div>SharedLayout</div>
+    <main className="flex">
+      <div>
+        <Sidebar />
+      </div>
       <div>
         <Outlet />
       </div>
-    </div>
+    </main>
   )
 }
 export default SharedLayout
