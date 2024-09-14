@@ -1,4 +1,7 @@
+import { toggleSidebar } from "@/features/sidebar/sidebarSlice";
+import { useAppDispatch } from "@/hooks/userCustomHook";
 import { FaBars } from "react-icons/fa";
+import { FaGear } from "react-icons/fa6";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -8,15 +11,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { FaGear } from "react-icons/fa6";
 
 const Navbar = () => {
+  const dispatch = useAppDispatch();
+
+  const toggle = (): void => {
+    dispatch(toggleSidebar());
+  };
+
   return (
     <nav className="flex items-center justify-between p-3 w-full shadow-md shadow-gray-300 bg-slate-100 h-[75px]">
       <div>
         <Button
           variant="ghost"
-          className="text-gray-500 hover:text-gray-900 hover:rotate-180 transition ease-in-out delay-100"
+          className="text-gray-500 hover:text-gray-900 hover:rotate-180 transition ease-in-out"
+          onClick={toggle}
         >
           <FaBars className="text-3xl" />
         </Button>

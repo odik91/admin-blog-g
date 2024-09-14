@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 const SharedLayout = () => {
   return (
     <main className="flex">
-      <div>
+      <div className="relative">
         <Sidebar />
       </div>
       <div className="w-full">
