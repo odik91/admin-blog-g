@@ -1,5 +1,6 @@
-import Sidebar from "@/components/Sidebar"
-import { Outlet } from "react-router-dom"
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { Outlet } from "react-router-dom";
 
 const SharedLayout = () => {
   return (
@@ -7,10 +8,11 @@ const SharedLayout = () => {
       <div>
         <Sidebar />
       </div>
-      <div>
+      <div className="w-full">
+        <Navbar />
         <Outlet />
       </div>
     </main>
-  )
-}
-export default SharedLayout
+  );
+};
+export default SharedLayout;

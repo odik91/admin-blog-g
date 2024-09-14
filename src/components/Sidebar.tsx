@@ -1,4 +1,11 @@
-import { FaAddressCard, FaComment, FaGalacticRepublic, FaNewspaper, FaScroll, FaUniversalAccess } from "react-icons/fa";
+import {
+  FaAddressCard,
+  FaComment,
+  FaGalacticRepublic,
+  FaNewspaper,
+  FaScroll,
+  FaUniversalAccess,
+} from "react-icons/fa";
 import SideLink from "./SideLink";
 import { Separator } from "./ui/separator";
 import { FaBookAtlas, FaMessage, FaUsersBetweenLines } from "react-icons/fa6";
@@ -49,15 +56,15 @@ const menus: Menu[] = [
   },
   {
     id: 7,
-    text: "message",
-    link: "/message",
-    icon: <FaMessage className="text-xl" />,
-  },
-  {
-    id: 8,
     text: "permission",
     link: "/permission",
     icon: <FaUniversalAccess className="text-xl" />,
+  },
+  {
+    id: 8,
+    text: "message",
+    link: "/message",
+    icon: <FaMessage className="text-xl" />,
   },
   {
     id: 9,
@@ -69,7 +76,7 @@ const menus: Menu[] = [
 
 const Sidebar = () => {
   return (
-    <aside className="p-4 bg-zinc-700 w-[250px] h-screen text-white">
+    <aside className="hidden lg:block p-4 bg-zinc-700 w-[250px] h-screen text-white">
       <div className="flex items-center gap-2 mb-3">
         <img
           src="http://blogcms.siodik.my.id/template/dist/img/AdminLTELogo.png"
@@ -80,13 +87,13 @@ const Sidebar = () => {
       </div>
       <Separator className="my-4" />
       <ul className="flex flex-col flex-wrap list-none my-4">
-        {
-          menus.map((menu) => {
-            return <li className="font-medium text-lg mb-2">
-            <SideLink key={menu.id} {...menu} />
-          </li>
-          })
-        }
+        {menus.map((menu) => {
+          return (
+            <li className="font-medium text-lg mb-2">
+              <SideLink key={menu.id} {...menu} />
+            </li>
+          );
+        })}
       </ul>
     </aside>
   );
