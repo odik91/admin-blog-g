@@ -1,3 +1,4 @@
+import { Footer } from "@/components";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Outlet } from "react-router-dom";
@@ -8,9 +9,10 @@ const SharedLayout = () => {
       <div className="relative">
         <Sidebar />
       </div>
-      <div className="w-full">
+      <div className="h-screen w-full">
         <Navbar />
         <Outlet />
+        <Footer />
       </div>
     </main>
   );

@@ -121,8 +121,8 @@ const Sidebar = () => {
       <ul className="flex flex-col flex-wrap list-none my-4">
         {menus.map((menu) => {
           return (
-            <li className="font-medium text-lg mb-2">
-              <SideLink key={menu.id} {...menu} />
+            <li className="font-medium text-lg mb-2" key={menu.id}>
+              <SideLink {...menu} />
             </li>
           );
         })}

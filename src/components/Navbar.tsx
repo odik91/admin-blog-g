@@ -20,7 +20,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between p-3 w-full shadow-md shadow-gray-300 bg-slate-100 h-[75px]">
+    <nav className="flex items-center justify-between p-3 w-full shadow-md shadow-gray-300 h-[75px]">
       <div>
         <Button
           variant="ghost"
