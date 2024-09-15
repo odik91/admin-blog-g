@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 // import { loginUserThunk } from "./userThunk";
 import { RootState } from "@/store";
-import { loginUserThunk } from "./userThunk";
-import { addUserToLocalStorage, getUserFromLocalStorage } from "@/utils/localStorage";
+import { loginUserThunk, logoutUserThunk } from "./userThunk";
+import { addUserToLocalStorage, getUserFromLocalStorage, removeUserFromLocalStorage } from "@/utils/localStorage";
+import { toast } from "react-toastify";
 
 export type UserType = {
   id: number;
@@ -67,21 +69,19 @@ export const loginUser = createAsyncThunk<
   { rejectValue: string; state: RootState }
 >(
   "user/loginUser",
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (user: LoginUser, thunkAPI: ThunkAPI): Promise<any> => {
     return loginUserThunk("/login", user, thunkAPI);
   }
 );
 
+export const logoutUser = createAsyncThunk<any, void,  { rejectValue: string; state: RootState }>("user/logoutUser", async (_, thunkAPI: ThunkAPI) => {
+  return logoutUserThunk('/logout', thunkAPI)
+});
+
 const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {
-    logoutUser: (state, { payload }: PayloadAction<string | undefined>) => {
-      state.user = null;
-      console.log(payload);
-    },
-  },
+  reducers: {  },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
@@ -100,10 +100,31 @@ const userSlice = createSlice({
         (state, { payload }: PayloadAction<string | undefined>) => {
           state.isLoading = false;
           console.log(payload);
+          
+          if (payload) toast.error(payload);
         }
-      );
+      )
+      .addCase(logoutUser.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(
+        logoutUser.fulfilled,
+        (state) => {
+          state.isLoading = false;
+          state.user = null;
+          removeUserFromLocalStorage()
+          toast.success('Logging out...')
+        }
+      )
+      .addCase(
+        logoutUser.rejected,
+        (state, { payload }: PayloadAction<string | undefined>) => {
+          state.isLoading = false;
+          if (payload) toast.error(payload);
+        }
+      )
   },
 });
 
-export const { logoutUser } = userSlice.actions;
+// export const { logoutUser } = userSlice.actions;
 export default userSlice.reducer;

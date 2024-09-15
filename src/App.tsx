@@ -15,6 +15,7 @@ import {
 } from "./pages/admin";
 import { Error, Login } from "./pages";
 import ProtectedRoute from "./pages/ProtectedRoute";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="login" element={<Login />} />
         <Route path="*" element={<Error />} />
       </Routes>
+      <ToastContainer position="top-center" />
     </BrowserRouter>
   );
 };

@@ -11,12 +11,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { logoutUser } from "@/features/user/userSlice";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
 
   const toggle = (): void => {
     dispatch(toggleSidebar());
+  };
+
+  const loggingOut = (): void => {
+    dispatch(logoutUser());
   };
 
   return (
@@ -44,7 +49,7 @@ const Navbar = () => {
             <DropdownMenuLabel>Settings</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={loggingOut}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
