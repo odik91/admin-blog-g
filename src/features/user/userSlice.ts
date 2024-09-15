@@ -3,7 +3,7 @@ import axios from "axios";
 // import { loginUserThunk } from "./userThunk";
 import { RootState } from "@/store";
 import { loginUserThunk } from "./userThunk";
-import { addUserToLocalStorage } from "@/utils/localStorage";
+import { addUserToLocalStorage, getUserFromLocalStorage } from "@/utils/localStorage";
 
 export type UserType = {
   id: number;
@@ -29,12 +29,13 @@ type InitialState = {
 
 export interface ThunkAPI {
   rejectWithValue: (value: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   dispatch: Function;
 }
 
 const initialState: InitialState = {
   isLoading: false,
-  user: null,
+  user: getUserFromLocalStorage(),
 };
 
 export const errorHelperThunkAPI = (
@@ -66,6 +67,7 @@ export const loginUser = createAsyncThunk<
   { rejectValue: string; state: RootState }
 >(
   "user/loginUser",
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (user: LoginUser, thunkAPI: ThunkAPI): Promise<any> => {
     return loginUserThunk("/login", user, thunkAPI);
   }

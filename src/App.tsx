@@ -14,12 +14,20 @@ import {
   User,
 } from "./pages/admin";
 import { Error, Login } from "./pages";
+import ProtectedRoute from "./pages/ProtectedRoute";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SharedLayout />}>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <SharedLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="category" element={<Category />} />
           <Route path="subcategory" element={<Subcategory />} />
