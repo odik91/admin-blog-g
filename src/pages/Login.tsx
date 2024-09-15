@@ -16,9 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { loginUser } from "@/features/user/userSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/userCustomHook";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -27,7 +30,9 @@ const formSchema = z.object({
 });
 
 const Login = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, user } = useAppSelector((store) => store.user);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   // 1. define form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,12 +43,16 @@ const Login = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values);
-    setIsLoading(false);
+    dispatch(loginUser({ email: values.email, password: values.password }));
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <Card className="w-[400px]">
