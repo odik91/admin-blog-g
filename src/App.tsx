@@ -1,4 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { Error, Login } from "./pages";
 import {
   Category,
   Comment,
@@ -13,9 +15,7 @@ import {
   Submenu,
   User,
 } from "./pages/admin";
-import { Error, Login } from "./pages";
 import ProtectedRoute from "./pages/ProtectedRoute";
-import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (

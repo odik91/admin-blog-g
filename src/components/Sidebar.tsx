@@ -87,7 +87,7 @@ const Sidebar = () => {
   };
   return (
     <aside
-      className={`lg:block p-4 bg-zinc-700 h-screen text-white transform transition-all w-[250px] ${
+      className={`lg:block p-4 bg-zinc-700 h-screen text-white transform transition-all w-[250px] z-10 ${
         sidebarOpen
           ? "lg:w-[75px] overflow-hidden fixed lg:relative"
           : "lg:w-[250px] hidden"
@@ -118,7 +118,7 @@ const Sidebar = () => {
         </div>
       </div>
       <Separator className="my-4" />
-      <ul className="flex flex-col flex-wrap list-none my-4">
+      <ul className="flex flex-col flex-wrap list-none my-4 h-[calc(100vh - 75px)]">
         {menus.map((menu) => {
           return (
             <li className="font-medium text-lg mb-2" key={menu.id}>

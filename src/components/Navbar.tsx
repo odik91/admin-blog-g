@@ -26,14 +26,13 @@ const Navbar = () => {
 
   return (
     <nav className="flex items-center justify-between p-3 w-full shadow-md shadow-gray-300 h-[75px]">
-      <div>
-        <Button
-          variant="ghost"
-          className="text-gray-500 hover:text-gray-900 hover:rotate-180 transition ease-in-out"
+      <div className="px-3">
+        <div
+          className={`text-gray-500 active:opacity-0 active: hover:cursor-pointer hover:text-gray-900 hover:rotate-180 transition ease-in-out`}
           onClick={toggle}
         >
           <FaBars className="text-3xl" />
-        </Button>
+        </div>
       </div>
       <div>
         <DropdownMenu>
