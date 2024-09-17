@@ -1,3 +1,4 @@
+import { LoadingContent } from "@/components/generals";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -10,13 +11,13 @@ import {
 } from "@/components/ui/table";
 import { CategoryData, QueryCategory } from "@/features/category/categorySlice";
 import customFetch from "@/utils/axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  useReactTable,
   PaginationState,
+  useReactTable,
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -25,9 +26,8 @@ import BreadCrumb from "../../components/BreadCrumb";
 const Category = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Initialize pagination state with pageIndex and pageSize
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: Number(searchParams.get("page")) - 1 || 0, // Subtract 1 to convert to zero-indexed
+    pageIndex: Number(searchParams.get("page")) - 1 || 0,
     pageSize: Number(searchParams.get("limit")) || 10,
   });
 
@@ -42,8 +42,17 @@ const Category = () => {
     () => [
       {
         header: "No",
-        cell: (info) =>
-          info.row.index + 1 + pagination.pageIndex * pagination.pageSize,
+        cell: (info) => {
+          let set_row: number = 0;
+          if (Number(queryParameters.page) === 1) {
+            set_row = 0;
+          } else {
+            set_row =
+              Number(queryParameters.page) * Number(queryParameters.limit);
+          }
+
+          return info.row.index + 1 + set_row;
+        },
       },
       {
         accessorKey: "name",
@@ -54,7 +63,7 @@ const Category = () => {
         header: "Description",
       },
     ],
-    [pagination]
+    [queryParameters.limit, queryParameters.page]
   );
 
   const categoryQuery = useQuery({
@@ -67,6 +76,8 @@ const Category = () => {
       );
       return response.data;
     },
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 30, // data will invalidate in 3 minute
   });
 
   const handlePageChange = (page: number) => {
@@ -94,7 +105,7 @@ const Category = () => {
     pageCount: Math.ceil(totalRecords / pagination.pageSize),
     state: { pagination },
     getCoreRowModel: getCoreRowModel(),
-    manualPagination: true, // For server-side pagination
+    manualPagination: true,
     onPaginationChange: setPagination, // This is where you directly use setPagination
     debugTable: false,
   });
@@ -133,18 +144,28 @@ const Category = () => {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+              {categoryQuery.isFetching ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center">
+                    <LoadingContent />
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                <>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </>
+              )}
             </TableBody>
           </Table>
           <div className="flex items-center gap-2">
@@ -181,7 +202,7 @@ const Category = () => {
             <span className="flex items-center gap-1">
               <div>Page</div>
               <strong>
-                {pagination.pageIndex + 1} of {table.getPageCount()}
+                {queryParameters?.page || 1} of {table.getPageCount()}
               </strong>
             </span>
             <span className="flex items-center gap-1">
@@ -190,8 +211,8 @@ const Category = () => {
                 type="number"
                 min="1"
                 max={table.getPageCount()}
-                defaultValue={pagination.pageIndex + 1}
-                value={queryParameters.page}
+                // defaultValue={pagination.pageIndex + 1}
+                value={queryParameters?.page || 1}
                 onChange={(e) => {
                   const page = e.target.value ? Number(e.target.value) : 1;
                   handlePageChange(page);
@@ -220,7 +241,6 @@ const Category = () => {
                 </option>
               ))}
             </select>
-            {categoryQuery.isFetching ? "Loading..." : null}
           </div>
         </div>
       </main>
