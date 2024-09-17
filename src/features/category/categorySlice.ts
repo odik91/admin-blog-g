@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import { PayloadAction } from "@reduxjs/toolkit";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { RootState } from "@/store";
@@ -112,7 +113,7 @@ const categorySlice = createSlice({
           { payload }: PayloadAction<CategoryData & { message: string }>
         ) => {
           state.is_loading = false;
-          console.log(payload);
+          toast.success(payload.message)
         }
       )
       .addCase(
@@ -127,7 +128,7 @@ const categorySlice = createSlice({
       })
       .addCase(
         getCategory.fulfilled,
-        (state, { payload }: PayloadAction<ResponseData>) => {
+        (state, { payload }: PayloadAction<ResponseData>) => {          
           const { categories } = payload;
           const {
             current_page,
