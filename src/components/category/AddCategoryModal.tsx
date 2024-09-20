@@ -46,7 +46,6 @@ const AddCategoryModal = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
     dispatch(createCategory({ ...values })).then(() => {
       setOpen(false);
       form.reset()

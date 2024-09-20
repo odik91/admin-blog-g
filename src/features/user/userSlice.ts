@@ -133,6 +133,11 @@ const userSlice = createSlice({
         (state, { payload }: PayloadAction<string | undefined>) => {
           state.isLoading = false;
           if (payload) toast.error(payload);
+          if (payload === "Unauthenticated.") {
+            removeUserFromLocalStorage();
+            state = initialState
+            window.location.reload();
+          }
         }
       );
   },

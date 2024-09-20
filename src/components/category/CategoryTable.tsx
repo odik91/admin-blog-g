@@ -8,8 +8,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CategoryData, QueryCategory } from "@/features/category/categorySlice";
+import { logoutUser } from "@/features/user/userSlice";
+import { useAppDispatch } from "@/hooks/userCustomHook";
 import customFetch from "@/utils/axios";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   ColumnDef,
   flexRender,
@@ -17,12 +19,14 @@ import {
   PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
+import axios from "axios";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Separator } from "../ui/separator";
 
 const CategoryTable = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: Number(searchParams.get("page")) - 1 || 0,
@@ -55,6 +59,7 @@ const CategoryTable = () => {
       {
         accessorKey: "name",
         header: "Category",
+        cell: (info) => info.getValue(),
       },
       {
         accessorKey: "description",
@@ -67,12 +72,21 @@ const CategoryTable = () => {
   const categoryQuery = useQuery({
     queryKey: ["category", queryParameters],
     queryFn: async () => {
-      const response = await customFetch.get(
-        `/category?limit=${queryParameters.limit}${
-          queryParameters.search ? `&search=${queryParameters.search}` : ""
-        }&order=${queryParameters.order}&page=${queryParameters.page}`
-      );
-      return response.data;
+      try {
+        const response = await customFetch.get(
+          `/category?limit=${queryParameters.limit}${
+            queryParameters.search ? `&search=${queryParameters.search}` : ""
+          }&order=${queryParameters.order}&page=${queryParameters.page}`
+        );
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+        }
+        throw error;
+      }
     },
     placeholderData: keepPreviousData,
     staleTime: 1000 * 30, // data will invalidate in 3 minute
@@ -91,10 +105,10 @@ const CategoryTable = () => {
   };
 
   const tableData = categoryQuery.isSuccess
-    ? categoryQuery.data.categories.data
+    ? categoryQuery?.data?.categories?.data
     : [];
   const totalRecords = categoryQuery.isSuccess
-    ? categoryQuery.data.categories.total
+    ? categoryQuery?.data?.categories?.total
     : 0;
 
   const table = useReactTable({
@@ -115,12 +129,34 @@ const CategoryTable = () => {
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <TableHead className="text-center" key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
+                  {header.isPlaceholder ? null : (
+                    <div
+                      className={
+                        header.column.getCanSort()
+                          ? "cursor-pointer select-none"
+                          : ""
+                      }
+                      onClick={header.column.getToggleSortingHandler()}
+                      title={
+                        header.column.getCanSort()
+                          ? header.column.getNextSortingOrder() === "asc"
+                            ? "Sort ascending"
+                            : header.column.getNextSortingOrder() === "desc"
+                            ? "Sort descending"
+                            : "Clear sort"
+                          : undefined
+                      }
+                    >
+                      {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
                       )}
+                      {{
+                        asc: " 🔼",
+                        desc: " 🔽",
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  )}
                 </TableHead>
               ))}
             </TableRow>
@@ -226,7 +262,9 @@ const CategoryTable = () => {
               </option>
             ))}
           </select>
-          <h1>Total Record: <strong>{totalRecords}</strong></h1>
+          <h1>
+            Total Record: <strong>{totalRecords}</strong>
+          </h1>
         </div>
       </div>
     </div>
