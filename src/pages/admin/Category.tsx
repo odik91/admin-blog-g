@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 
-import { AddCategoryModal, CategoryTable } from "@/components/category";
+import { AddCategoryModal, CategoryTableV2 } from "@/components/category";
 import BreadCrumb from "../../components/BreadCrumb";
 
 const Category = () => {
@@ -18,7 +18,7 @@ const Category = () => {
           <AddCategoryModal />
         </div>
         <Separator className="my-3" />
-        <CategoryTable />
+        <CategoryTableV2 />
       </main>
     </div>
   );
