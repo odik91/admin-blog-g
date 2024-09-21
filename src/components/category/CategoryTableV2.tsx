@@ -1,23 +1,41 @@
-import { useMemo, useState } from "react";
+import { useGetCategories } from "@/actions/category";
 import { CategoryData } from "@/features/category/categorySlice";
+import { useAppSelector } from "@/hooks/userCustomHook";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import {
   MaterialReactTable,
+  MRT_ColumnFiltersState,
+  MRT_PaginationState,
   MRT_Row,
+  MRT_SortingState,
   MRT_TableOptions,
   useMaterialReactTable,
   type MRT_ColumnDef,
 } from "material-react-table";
-import { useAppDispatch, useAppSelector } from "@/hooks/userCustomHook";
-import { useQuery } from "@tanstack/react-query";
-import customFetch from "@/utils/axios";
-import axios from "axios";
-import { logoutUser } from "@/features/user/userSlice";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
-import { DeleteIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "../ui/button";
+
+export type CategoryApiResponse = {
+  data: Array<CategoryData>;
+  meta: {
+    totalRowCount: number;
+  };
+};
 
 const CategoryTableV2 = () => {
   const { is_loading } = useAppSelector((store) => store.category);
+
+  // local state
+  const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
+    []
+  );
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState<MRT_SortingState>([]);
+  const [pagination, setPagination] = useState<MRT_PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
@@ -34,6 +52,9 @@ const CategoryTableV2 = () => {
         header: "No",
         enableEditing: false,
         size: 30,
+        Cell: ({ row }) => {
+          return row.index + 1 + pagination.pageIndex * pagination.pageSize;
+        },
       },
       {
         accessorKey: "name",
@@ -58,6 +79,7 @@ const CategoryTableV2 = () => {
       {
         accessorKey: "description",
         header: "Description",
+        enableSorting: false,
         muiEditTextFieldProps: ({ cell, row }) => ({
           type: "text",
           required: false,
@@ -75,7 +97,12 @@ const CategoryTableV2 = () => {
         }),
       },
     ],
-    [editedCategory, validationErrors]
+    [
+      // editedCategory,
+      validationErrors,
+      pagination.pageIndex,
+      pagination.pageSize,
+    ]
   );
 
   const handleCreateCategory: MRT_TableOptions<CategoryData>["onCreatingRowSave"] =
@@ -97,21 +124,25 @@ const CategoryTableV2 = () => {
 
   // call read category data
   const {
-    data: fetchedCategories = [],
+    data: { data = [], meta } = {},
     isError: isLoadingCategoriesError,
-    isFetching: isFetchingCategories,
+    isRefetching: isFetchingCategories,
     isLoading: isLoadingCategories,
-  } = useGetCategories();
+  } = useGetCategories(columnFilters, globalFilter, pagination, sorting);
 
   const table = useMaterialReactTable({
     columns,
-    data: fetchedCategories,
+    data: data,
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
     createDisplayMode: "row",
     editDisplayMode: "cell",
     enableCellActions: true,
     enableClickToCopy: "context-menu",
     enableColumnPinning: true,
     enableEditing: true,
+    enableRowActions: true,
     getRowId: (row) => {
       return row?.id?.toString() || "0";
     },
@@ -126,6 +157,10 @@ const CategoryTableV2 = () => {
         minHeight: "500px",
       },
     },
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
     onCreatingRowSave: handleCreateCategory,
     renderRowActions: ({ row }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
@@ -139,6 +174,7 @@ const CategoryTableV2 = () => {
         </Tooltip>
       </Box>
     ),
+    rowCount: meta?.totalRowCount ?? 0,
     renderBottomToolbarCustomActions: () => (
       <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <Button
@@ -160,52 +196,35 @@ const CategoryTableV2 = () => {
         )}
       </Box>
     ),
-    renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        variant="default"
-        onClick={() => {
-          table.setCreatingRow(true);
-        }}
-      >
-        Create category
-      </Button>
-    ),
+    // renderTopToolbarCustomActions: ({ table }) => (
+    //   <Button
+    //     variant="default"
+    //     onClick={() => {
+    //       table.setCreatingRow(true);
+    //     }}
+    //   >
+    //     Create category
+    //   </Button>
+    // ),
     initialState: {
       columnPinning: {
         right: ["mrt-row-actions"],
       },
+      showColumnFilters: false,
     },
     state: {
       isLoading: isLoadingCategories,
       // isSaving: isCreatingUser || isUpdatingUsers || isDeletingUser,
       showAlertBanner: isLoadingCategoriesError,
       showProgressBars: isFetchingCategories,
+      columnFilters,
+      globalFilter,
+      pagination,
+      sorting,
     },
   });
 
   return <MaterialReactTable table={table} />;
-};
-
-const useGetCategories = () => {
-  const dispatch = useAppDispatch();
-  return useQuery({
-    queryKey: ["category"],
-    queryFn: async () => {
-      try {
-        const response = await customFetch.get(`/category`);
-        return response.data.categories.data;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status === 401) {
-            dispatch(logoutUser());
-          }
-        }
-        throw error;
-      }
-    },
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 30, // data will invalidate in 3 minute
-  });
 };
 
 const validateRequired = (value: string) => !!value.length;

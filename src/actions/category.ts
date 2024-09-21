@@ -1,0 +1,66 @@
+import { logoutUser } from "@/features/user/userSlice";
+import { useAppDispatch } from "@/hooks/userCustomHook";
+import customFetch from "@/utils/axios";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import {
+  MRT_ColumnFiltersState,
+  MRT_PaginationState,
+  MRT_SortingState,
+} from "material-react-table";
+
+export const useGetCategories = (
+  columnFilters: MRT_ColumnFiltersState,
+  globalFilter: string,
+  pagination: MRT_PaginationState,
+  sorting: MRT_SortingState
+) => {
+  const dispatch = useAppDispatch();
+  return useQuery({
+    queryKey: [
+      "category",
+      columnFilters, //refetch when columnFilters changes
+      globalFilter, //refetch when globalFilter changes
+      pagination.pageIndex, //refetch when pagination.pageIndex changes
+      pagination.pageSize, //refetch when pagination.pageSize changes
+      sorting, //refetch when sorting changes
+    ],
+    queryFn: async () => {
+      console.log(
+        columnFilters,
+        globalFilter,
+        pagination.pageIndex,
+        pagination.pageSize,
+        sorting
+      );
+
+      console.log(sorting);
+      let sortingParam: string = "";
+      if (sorting.length > 0) {
+        const { id, desc } = sorting[0];
+        sortingParam = `&orderBy=${id}&order=${desc ? 'desc' : 'asc'}`
+      }
+
+      const params = `?limit=${pagination.pageSize}&page=${
+        pagination.pageIndex + 1
+      }${globalFilter ? `&search=${globalFilter}` : ''}${sortingParam && sortingParam}`;
+
+      try {
+        const response = await customFetch.get(`/category${params}`);
+        return {
+          data: response.data.categories.data,
+          meta: { totalRowCount: Number(response.data.categories.total) },
+        };
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+        }
+        throw error;
+      }
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 30, // data will invalidate in 3 minute
+  });
+};
