@@ -1,6 +1,9 @@
 import { useGetCategories } from "@/actions/category";
-import { CategoryData } from "@/features/category/categorySlice";
-import { useAppSelector } from "@/hooks/userCustomHook";
+import {
+  CategoryData,
+  createCategory,
+} from "@/features/category/categorySlice";
+import { useAppDispatch } from "@/hooks/userCustomHook";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import {
@@ -14,7 +17,9 @@ import {
   type MRT_ColumnDef,
 } from "material-react-table";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "../ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type CategoryApiResponse = {
   data: Array<CategoryData>;
@@ -24,18 +29,32 @@ export type CategoryApiResponse = {
 };
 
 const CategoryTableV2 = () => {
-  const { is_loading } = useAppSelector((store) => store.category);
+  // const { is_loading } = useAppSelector((store) => store.category);
+  const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // local state
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
     []
   );
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [sorting, setSorting] = useState<MRT_SortingState>([]);
-  const [pagination, setPagination] = useState<MRT_PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  const [globalFilter, setGlobalFilter] = useState(
+    searchParams.get("search") || ""
+  );
+  const [sorting, setSorting] = useState<MRT_SortingState>(() => {
+    const sortParam = searchParams.get("sort");
+    const descParam = searchParams.get("desc");
+    if (sortParam) {
+      return [{ id: sortParam, desc: descParam === "true" }];
+    }
+    return [];
   });
+  const [pagination, setPagination] = useState<MRT_PaginationState>({
+    pageIndex: searchParams.get("page")
+      ? Number(searchParams.get("page")) - 1
+      : 0,
+    pageSize: Number(searchParams.get("limit")) || 10,
+  });
+
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
@@ -44,6 +63,8 @@ const CategoryTableV2 = () => {
     Record<string, CategoryData>
   >({});
 
+  const dispatch = useAppDispatch();
+
   // define columns
   const columns = useMemo<MRT_ColumnDef<CategoryData>[]>(
     () => [
@@ -51,6 +72,7 @@ const CategoryTableV2 = () => {
         accessorKey: "id",
         header: "No",
         enableEditing: false,
+        enableColumnFilter: false,
         size: 30,
         Cell: ({ row }) => {
           return row.index + 1 + pagination.pageIndex * pagination.pageSize;
@@ -80,6 +102,7 @@ const CategoryTableV2 = () => {
         accessorKey: "description",
         header: "Description",
         enableSorting: false,
+        enableColumnFilter: false,
         muiEditTextFieldProps: ({ cell, row }) => ({
           type: "text",
           required: false,
@@ -112,8 +135,13 @@ const CategoryTableV2 = () => {
         setValidationErrors(newValidationErrors);
         return;
       }
-      console.log(values);
+      const { name, description } = values;
+      const data = { name, description };
+
+      setValidationErrors({});
+      await dispatch(createCategory(data));
       table.setCreatingRow(null);
+      queryClient.invalidateQueries({queryKey: ['category']})
     };
 
   const openDeleteCategoryConfirmModal = (row: MRT_Row<CategoryData>) => {
@@ -143,6 +171,7 @@ const CategoryTableV2 = () => {
     enableColumnPinning: true,
     enableEditing: true,
     enableRowActions: true,
+    enableGlobalFilter: true,
     getRowId: (row) => {
       return row?.id?.toString() || "0";
     },
@@ -158,9 +187,57 @@ const CategoryTableV2 = () => {
       },
     },
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
-    onSortingChange: setSorting,
+    onGlobalFilterChange: (updater) => {
+      setSearchParams((prevParams) => {
+        const newSearchParams = new URLSearchParams(prevParams);
+        if (updater) {
+          newSearchParams.set("search", updater);
+        } else {
+          newSearchParams.delete("search", updater);
+        }
+        return newSearchParams;
+      });
+
+      setGlobalFilter(updater);
+    },
+    onPaginationChange: (updater) => {
+      const newPagination =
+        typeof updater === "function" ? updater(pagination) : updater;
+      setSearchParams((prevParams) => {
+        const newParams = new URLSearchParams(prevParams);
+        newParams.set("page", (newPagination.pageIndex + 1).toString());
+        newParams.set("limit", newPagination.pageSize.toString());
+
+        return newParams;
+      });
+
+      setPagination(newPagination);
+    },
+    onSortingChange: (updater) => {
+      const newSorting =
+        typeof updater === "function" ? updater(sorting) : updater;
+
+      const sortId = newSorting[0]?.id || "";
+      const desc = newSorting[0]?.desc ? "true" : "false";
+
+      // update the url parameters with new sorting
+      setSearchParams((prevParams) => {
+        const newParams = new URLSearchParams(prevParams);
+        if (sortId) {
+          // If sortId is not empty, update the 'sort' and 'desc' params
+          newParams.set("sort", sortId);
+          newParams.set("desc", desc);
+        } else {
+          // If sortId is empty, remove 'sort' and 'desc' params
+          newParams.delete("sort");
+          newParams.delete("desc");
+        }
+        return newParams;
+      });
+
+      // update the sorting state
+      setSorting(newSorting);
+    },
     onCreatingRowSave: handleCreateCategory,
     renderRowActions: ({ row }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
@@ -196,21 +273,22 @@ const CategoryTableV2 = () => {
         )}
       </Box>
     ),
-    // renderTopToolbarCustomActions: ({ table }) => (
-    //   <Button
-    //     variant="default"
-    //     onClick={() => {
-    //       table.setCreatingRow(true);
-    //     }}
-    //   >
-    //     Create category
-    //   </Button>
-    // ),
+    renderTopToolbarCustomActions: ({ table }) => (
+      <Button
+        variant="outline"
+        onClick={() => {
+          table.setCreatingRow(true);
+        }}
+      >
+        Create category
+      </Button>
+    ),
     initialState: {
       columnPinning: {
         right: ["mrt-row-actions"],
       },
       showColumnFilters: false,
+      showGlobalFilter: searchParams.get("search") ? true : false,
     },
     state: {
       isLoading: isLoadingCategories,

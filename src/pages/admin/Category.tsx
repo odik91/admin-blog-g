@@ -1,6 +1,4 @@
-import { Separator } from "@/components/ui/separator";
-
-import { AddCategoryModal, CategoryTableV2 } from "@/components/category";
+import { CategoryTableV2 } from "@/components/category";
 import BreadCrumb from "../../components/BreadCrumb";
 
 const Category = () => {
@@ -14,10 +12,10 @@ const Category = () => {
     >
       <BreadCrumb link="/" target="home" current="category" />
       <main className="m-2 p-4 bg-white rounded-md shadow-md">
-        <div className="flex items-center justify-end">
+        {/* <div className="flex items-center justify-end">
           <AddCategoryModal />
-        </div>
-        <Separator className="my-3" />
+        </div> */}
+        {/* <Separator className="my-3" /> */}
         <CategoryTableV2 />
       </main>
     </div>

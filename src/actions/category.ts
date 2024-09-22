@@ -26,24 +26,23 @@ export const useGetCategories = (
       sorting, //refetch when sorting changes
     ],
     queryFn: async () => {
-      console.log(
-        columnFilters,
-        globalFilter,
-        pagination.pageIndex,
-        pagination.pageSize,
-        sorting
-      );
-
-      console.log(sorting);
       let sortingParam: string = "";
       if (sorting.length > 0) {
         const { id, desc } = sorting[0];
-        sortingParam = `&orderBy=${id}&order=${desc ? 'desc' : 'asc'}`
+        sortingParam = `&orderBy=${id}&order=${desc ? "desc" : "asc"}`;
+      }
+
+      let columnFilter = "";
+      if (columnFilters.length > 0) {
+        const { id, value } = columnFilters[0];
+        columnFilter = `&searchData=${id}&value=${value}`;
       }
 
       const params = `?limit=${pagination.pageSize}&page=${
         pagination.pageIndex + 1
-      }${globalFilter ? `&search=${globalFilter}` : ''}${sortingParam && sortingParam}`;
+      }${globalFilter ? `&search=${globalFilter}` : ""}${
+        sortingParam && sortingParam
+      }${columnFilter && columnFilter}`;
 
       try {
         const response = await customFetch.get(`/category${params}`);

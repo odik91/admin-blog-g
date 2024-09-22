@@ -14,8 +14,6 @@ export const createCategoryThunk = async (
 ): Promise<(CategoryData & { message: string }) | unknown> => {
   try {
     const response = await customFetch.post(url, category);
-    console.log(response.data);
-
     return response.data;
   } catch (error: unknown) {
     return errorHelperThunkAPI(error, thunkAPI, "action");
