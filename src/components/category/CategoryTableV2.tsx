@@ -3,9 +3,15 @@ import {
   CategoryData,
   createCategory,
 } from "@/features/category/categorySlice";
-import { useAppDispatch } from "@/hooks/userCustomHook";
+import { useAppDispatch, useAppSelector } from "@/hooks/userCustomHook";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import {
   MaterialReactTable,
   MRT_ColumnFiltersState,
@@ -29,8 +35,8 @@ export type CategoryApiResponse = {
 };
 
 const CategoryTableV2 = () => {
-  // const { is_loading } = useAppSelector((store) => store.category);
-  const queryClient = useQueryClient()
+  const { is_loading } = useAppSelector((store) => store.category);
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // local state
@@ -73,7 +79,7 @@ const CategoryTableV2 = () => {
         header: "No",
         enableEditing: false,
         enableColumnFilter: false,
-        size: 30,
+        size: 10,
         Cell: ({ row }) => {
           return row.index + 1 + pagination.pageIndex * pagination.pageSize;
         },
@@ -95,6 +101,7 @@ const CategoryTableV2 = () => {
               ...validationErrors,
               [cell.id]: validationError,
             });
+            setEditedCategory({ ...editedCategory, [row.id]: row.original });
           },
         }),
       },
@@ -116,12 +123,13 @@ const CategoryTableV2 = () => {
               ...validationErrors,
               [cell.id]: validationError,
             });
+            setEditedCategory({ ...editedCategory, [row.id]: row.original });
           },
         }),
       },
     ],
     [
-      // editedCategory,
+      editedCategory,
       validationErrors,
       pagination.pageIndex,
       pagination.pageSize,
@@ -141,8 +149,14 @@ const CategoryTableV2 = () => {
       setValidationErrors({});
       await dispatch(createCategory(data));
       table.setCreatingRow(null);
-      queryClient.invalidateQueries({queryKey: ['category']})
+      queryClient.invalidateQueries({ queryKey: ["category"] });
     };
+
+  const handleSaveCategories = async () => {
+    if (Object.values(validationErrors).some((error) => !!error)) return;
+
+    console.log(Object.values(editedCategory));
+  };
 
   const openDeleteCategoryConfirmModal = (row: MRT_Row<CategoryData>) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
@@ -257,16 +271,13 @@ const CategoryTableV2 = () => {
         <Button
           color="success"
           variant="outline"
-          onClick={() => {
-            console.log("edit");
-          }}
-          // disabled={
-          //   Object.keys(editedUsers).length === 0 ||
-          //   Object.values(validationErrors).some((error) => !!error)
-          // }
+          onClick={handleSaveCategories}
+          disabled={
+            Object.keys(editedCategory).length === 0 ||
+            Object.values(validationErrors).some((error) => !!error)
+          }
         >
-          {/* {isUpdatingUsers ? <CircularProgress size={25} /> : "Save"} */}
-          save
+          {is_loading ? <CircularProgress size={25} /> : "Save"}
         </Button>
         {Object.values(validationErrors).some((error) => !!error) && (
           <Typography color="error">Fix errors before submitting</Typography>
@@ -292,7 +303,7 @@ const CategoryTableV2 = () => {
     },
     state: {
       isLoading: isLoadingCategories,
-      // isSaving: isCreatingUser || isUpdatingUsers || isDeletingUser,
+      isSaving: is_loading,
       showAlertBanner: isLoadingCategoriesError,
       showProgressBars: isFetchingCategories,
       columnFilters,

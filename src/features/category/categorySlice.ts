@@ -1,9 +1,16 @@
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import { PayloadAction } from "@reduxjs/toolkit";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { RootState } from "@/store";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createCategoryThunk, getCategoryThunk } from "./categoryThunk";
+import {
+  createCategoryThunk,
+  deleteCategoryThunk,
+  destroyCategoryThunk,
+  getCategoryThunk,
+  restoreCategoryThunk,
+  updateCategoryThunk,
+} from "./categoryThunk";
 
 export type CategoryData = {
   id: number;
@@ -15,6 +22,7 @@ export type CategoryData = {
 };
 
 export type CreateEditCategory = {
+  id?: string;
   name: string;
   description?: string;
 };
@@ -47,7 +55,7 @@ type ResponseData = {
 };
 
 export type QueryCategory = {
-  order?: string | null,
+  order?: string | null;
   search?: string | null;
   limit?: number | string;
   page?: number | string;
@@ -56,6 +64,8 @@ export type QueryCategory = {
 type InitialState = BaseCategory & {
   is_loading?: boolean;
 };
+
+export type PayloadID = string | number;
 
 const initialState: InitialState = {
   is_loading: false,
@@ -93,6 +103,41 @@ export const getCategory = createAsyncThunk<
   return getCategoryThunk("/category", queryCategory, thunkAPI);
 });
 
+export const updateCategory = createAsyncThunk<
+  CategoryData & { message: string },
+  CreateEditCategory,
+  { rejectValue: string; state: RootState }
+>(
+  "category/update",
+  async (category: CreateEditCategory, thunkAPI): Promise<any> => {
+    return updateCategoryThunk(`/category/${category.id}`, category, thunkAPI);
+  }
+);
+
+export const deleteCategory = createAsyncThunk<
+  { message: string },
+  PayloadID,
+  { rejectValue: string; state: RootState }
+>("category/delete", async (id: PayloadID, thunkAPI): Promise<any> => {
+  return deleteCategoryThunk(`/category/${id}`, thunkAPI);
+});
+
+export const restoreCategory = createAsyncThunk<
+  { message: string },
+  PayloadID,
+  { rejectValue: string; state: RootState }
+>("category/restore", async (id: PayloadID, thunkAPI): Promise<any> => {
+  return restoreCategoryThunk(`/category/restore/${id}`, thunkAPI);
+});
+
+export const destroyCategory = createAsyncThunk<
+  { message: string },
+  PayloadID,
+  { rejectValue: string; state: RootState }
+>("category/destroy", async (id: PayloadID, thunkAPI): Promise<any> => {
+  return destroyCategoryThunk(`/category/destroy/${id}`, thunkAPI);
+});
+
 const categorySlice = createSlice({
   name: "category",
   initialState,
@@ -113,7 +158,7 @@ const categorySlice = createSlice({
           { payload }: PayloadAction<CategoryData & { message: string }>
         ) => {
           state.is_loading = false;
-          toast.success(payload.message)
+          toast.success(payload.message);
         }
       )
       .addCase(
@@ -128,7 +173,7 @@ const categorySlice = createSlice({
       })
       .addCase(
         getCategory.fulfilled,
-        (state, { payload }: PayloadAction<ResponseData>) => {          
+        (state, { payload }: PayloadAction<ResponseData>) => {
           const { categories } = payload;
           const {
             current_page,
@@ -167,6 +212,95 @@ const categorySlice = createSlice({
         (state, { payload }: PayloadAction<string | undefined>) => {
           state.is_loading = false;
           console.log(payload);
+          toast.error("Fail to fetch categories");
+        }
+      )
+      .addCase(updateCategory.pending, (state) => {
+        state.is_loading = true;
+      })
+      .addCase(
+        updateCategory.fulfilled,
+        (state, { payload }: PayloadAction<any>) => {
+          state.is_loading = false;
+          console.log(payload);
+        }
+      )
+      .addCase(
+        updateCategory.rejected,
+        (state, { payload }: PayloadAction<string | undefined>) => {
+          state.is_loading = false;
+          console.log(payload);
+          if (payload) {
+            toast.error(payload);
+          } else {
+            toast.error("Fail to update category");
+          }
+        }
+      )
+      .addCase(deleteCategory.pending, (state) => {
+        state.is_loading = true;
+      })
+      .addCase(
+        deleteCategory.fulfilled,
+        (state, { payload }: PayloadAction<any>) => {
+          state.is_loading = false;
+          console.log(payload);
+        }
+      )
+      .addCase(
+        deleteCategory.rejected,
+        (state, { payload }: PayloadAction<string | undefined>) => {
+          state.is_loading = false;
+          console.log(payload);
+          if (payload) {
+            toast.error(payload);
+          } else {
+            toast.error("Fail to update category");
+          }
+        }
+      )
+      .addCase(restoreCategory.pending, (state) => {
+        state.is_loading = true;
+      })
+      .addCase(
+        restoreCategory.fulfilled,
+        (state, { payload }: PayloadAction<any>) => {
+          state.is_loading = false;
+          console.log(payload);
+        }
+      )
+      .addCase(
+        restoreCategory.rejected,
+        (state, { payload }: PayloadAction<string | undefined>) => {
+          state.is_loading = false;
+          console.log(payload);
+          if (payload) {
+            toast.error(payload);
+          } else {
+            toast.error("Fail to update category");
+          }
+        }
+      )
+      .addCase(destroyCategory.pending, (state) => {
+        state.is_loading = true;
+      })
+      .addCase(
+        destroyCategory.fulfilled,
+        (state, { payload }: PayloadAction<any>) => {
+          state.is_loading = false;
+          console.log(payload);
+        }
+      )
+      .addCase(
+        destroyCategory.rejected,
+        (state, { payload }: PayloadAction<string | undefined>) => {
+          state.is_loading = false;
+          console.log(payload);
+          if (payload) {
+            toast.error(payload);
+          } else {
+            toast.error("Fail to update category");
+          }
         }
       );
   },
