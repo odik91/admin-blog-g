@@ -49,6 +49,20 @@ export const updateCategoryThunk = async (
   }
 };
 
+export const massUpdateCategoriesThunk = async (
+  url: string,
+  categories: CreateEditCategory[],
+  thunkAPI: AppThunkAPI
+): Promise<{ message: string } | unknown> => {
+  try {
+    const response = await customFetch.patch(url, categories);
+
+    return response.data;
+  } catch (error: unknown) {
+    return errorHelperThunkAPI(error, thunkAPI, "action");
+  }
+};
+
 export const deleteCategoryThunk = async (
   url: string,
   thunkAPI: AppThunkAPI

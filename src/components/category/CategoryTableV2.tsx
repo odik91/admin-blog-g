@@ -2,6 +2,8 @@ import { useGetCategories } from "@/actions/category";
 import {
   CategoryData,
   createCategory,
+  CreateEditCategory,
+  massUpdateCategories,
 } from "@/features/category/categorySlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/userCustomHook";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -26,6 +28,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 export type CategoryApiResponse = {
   data: Array<CategoryData>;
@@ -101,9 +104,28 @@ const CategoryTableV2 = () => {
               ...validationErrors,
               [cell.id]: validationError,
             });
-            setEditedCategory({ ...editedCategory, [row.id]: row.original });
+
+            // setEditedCategory({ ...editedCategory, [row.id]: row.original });
+            setEditedCategory({
+              ...editedCategory,
+              [row.id]: row._valuesCache,
+            });
           },
         }),
+        muiTableBodyCellProps: ({ cell }) => {
+          if (validationErrors[cell.id]) {
+            return {
+              style: {
+                backgroundColor: "#f8d7da",
+                color: "#721c24", // Teks warna merah jika ada error
+                border: "1px dashed #bd0013",
+              },
+            };
+          }
+          return {
+            style: {},
+          };
+        },
       },
       {
         accessorKey: "description",
@@ -123,9 +145,28 @@ const CategoryTableV2 = () => {
               ...validationErrors,
               [cell.id]: validationError,
             });
-            setEditedCategory({ ...editedCategory, [row.id]: row.original });
+
+            // setEditedCategory({ ...editedCategory, [row.id]: row.original });
+            setEditedCategory({
+              ...editedCategory,
+              [row.id]: row._valuesCache,
+            });
           },
         }),
+        muiTableBodyCellProps: ({ cell }) => {
+          if (validationErrors[cell.id]) {
+            return {
+              style: {
+                backgroundColor: "#f8d7da",
+                color: "#721c24", // Teks warna merah jika ada error
+                border: "1px dashed #bd0013",
+              },
+            };
+          }
+          return {
+            style: {},
+          };
+        },
       },
     ],
     [
@@ -155,7 +196,22 @@ const CategoryTableV2 = () => {
   const handleSaveCategories = async () => {
     if (Object.values(validationErrors).some((error) => !!error)) return;
 
-    console.log(Object.values(editedCategory));
+    const data: CreateEditCategory[] = [];
+
+    Object.values(editedCategory).forEach((item) => {
+      const { id, name, description } = item;
+      data.push({
+        id: id.toString(),
+        name,
+        description: description as string,
+      });
+    });
+
+    dispatch(massUpdateCategories(data)).then(() => {
+      setValidationErrors({});
+      setEditedCategory({});
+      queryClient.invalidateQueries({ queryKey: ["category"] });
+    });
   };
 
   const openDeleteCategoryConfirmModal = (row: MRT_Row<CategoryData>) => {
@@ -280,7 +336,9 @@ const CategoryTableV2 = () => {
           {is_loading ? <CircularProgress size={25} /> : "Save"}
         </Button>
         {Object.values(validationErrors).some((error) => !!error) && (
-          <Typography color="error">Fix errors before submitting</Typography>
+          <Typography color="error">
+            Please check your input categroy and description before submitting
+          </Typography>
         )}
       </Box>
     ),
