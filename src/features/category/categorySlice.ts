@@ -12,6 +12,7 @@ import {
   restoreCategoryThunk,
   updateCategoryThunk,
 } from "./categoryThunk";
+import Swal from "sweetalert2";
 
 export type CategoryData = {
   id: number;
@@ -237,7 +238,7 @@ const categorySlice = createSlice({
         updateCategory.fulfilled,
         (state, { payload }: PayloadAction<any>) => {
           state.is_loading = false;
-          toast.success(payload.message)
+          toast.success(payload.message);
         }
       )
       .addCase(
@@ -259,7 +260,13 @@ const categorySlice = createSlice({
         deleteCategory.fulfilled,
         (state, { payload }: PayloadAction<any>) => {
           state.is_loading = false;
-          toast.success(payload.message)
+          Swal.fire({
+            title: "Success!",
+            icon: "success",
+            html: `${payload.message}`,
+          });
+
+          // toast.success(payload.message)
         }
       )
       .addCase(
@@ -281,7 +288,7 @@ const categorySlice = createSlice({
         restoreCategory.fulfilled,
         (state, { payload }: PayloadAction<any>) => {
           state.is_loading = false;
-          toast.success(payload.message)
+          toast.success(payload.message);
         }
       )
       .addCase(
@@ -303,7 +310,7 @@ const categorySlice = createSlice({
         destroyCategory.fulfilled,
         (state, { payload }: PayloadAction<any>) => {
           state.is_loading = false;
-          toast.success(payload.message)
+          toast.success(payload.message);
         }
       )
       .addCase(
@@ -325,7 +332,7 @@ const categorySlice = createSlice({
         massUpdateCategories.fulfilled,
         (state, { payload }: PayloadAction<any>) => {
           state.is_loading = false;
-          toast.success(payload.message)
+          toast.success(payload.message);
         }
       )
       .addCase(

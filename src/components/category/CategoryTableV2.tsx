@@ -3,6 +3,7 @@ import {
   CategoryData,
   createCategory,
   CreateEditCategory,
+  deleteCategory,
   massUpdateCategories,
 } from "@/features/category/categorySlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/userCustomHook";
@@ -28,7 +29,8 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 export type CategoryApiResponse = {
   data: Array<CategoryData>;
@@ -215,9 +217,22 @@ const CategoryTableV2 = () => {
   };
 
   const openDeleteCategoryConfirmModal = (row: MRT_Row<CategoryData>) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      console.log(row.original.id);
-    }
+    const MySwal = withReactContent(Swal);
+    MySwal.fire({
+      title: <p>Warning!</p>,
+      icon: "warning",
+      html: `Are you sure want to delete<br><b>${row.original.name}?</b>`,
+      confirmButtonText: "Confirm",
+      showCancelButton: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteCategory(row.id)).then(() => {
+          queryClient.invalidateQueries({ queryKey: ["category"] });
+        });
+      } else if (result.isDenied) {
+        Swal.fire("Item not deleted", "", "info");
+      }
+    });
   };
 
   // call read category data
@@ -363,7 +378,7 @@ const CategoryTableV2 = () => {
       isLoading: isLoadingCategories,
       isSaving: is_loading,
       showAlertBanner: isLoadingCategoriesError,
-      showProgressBars: isFetchingCategories,
+      showProgressBars: isFetchingCategories || is_loading,
       columnFilters,
       globalFilter,
       pagination,
