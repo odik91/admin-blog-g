@@ -1,4 +1,6 @@
 import { useGetSubcategories } from "@/actions/subcategory";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   MaterialReactTable,
@@ -14,22 +16,14 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import DeleteIcon from "@mui/icons-material/Delete";
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Tooltip,
-  Typography,
-} from "@mui/material";
 import { Button } from "../ui/button";
 
-type GetCategory = {
-  id: number | string;
-  name: string;
-  slug: string;
-  description: string;
-};
+// type GetCategory = {
+//   id: number | string;
+//   name: string;
+//   slug: string;
+//   description: string;
+// };
 
 export type Subcategory = {
   id: string;
@@ -38,7 +32,7 @@ export type Subcategory = {
   slug: string;
   description: string;
   is_active: boolean | number;
-  get_category?: GetCategory;
+  category_name?: string;
 };
 
 export type SubcategoryApiResponse = {
@@ -94,12 +88,12 @@ const SubcategoryTable = () => {
         },
       },
       {
-        accessorKey: "get_category",
+        accessorKey: "category_id",
         header: "Category",
         enableEditing: true,
         enableColumnFilter: true,
         Cell: ({ row }) => {
-          return row.original.get_category?.name;
+          return row.original.category_name;          
         },
       },
       {
@@ -251,7 +245,39 @@ const SubcategoryTable = () => {
         minHeight: "500px",
       },
     },
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: (updater) => {
+      const newColumnFilter =
+        typeof updater === "function" ? updater(columnFilters) : updater;
+
+      setSearchParams((prevParams) => {
+        const findCategory = newColumnFilter.filter(
+          (item) => item.id === "category_id"
+        );
+
+        const findSubcategory = newColumnFilter.filter(
+          (item) => item.id === "subcategory"
+        );
+
+        const newSearchParams = new URLSearchParams(prevParams);
+
+        if (findCategory.length > 0) {
+          const cat_value = findCategory[0].value as string;
+          newSearchParams.set("category_id", cat_value);
+        } else {
+          newSearchParams.delete("category_id");
+        }
+
+        if (findSubcategory.length > 0) {
+          const subcat_value = findSubcategory[0].value as string;
+          newSearchParams.set("subcategory", subcat_value);
+        } else {
+          newSearchParams.delete("subcategory");
+        }
+
+        return newSearchParams;
+      });
+      setColumnFilters(newColumnFilter);
+    },
     onGlobalFilterChange: (updater) => {
       setSearchParams((prevParams) => {
         const newSearchParams = new URLSearchParams(prevParams);

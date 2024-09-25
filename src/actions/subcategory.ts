@@ -26,12 +26,25 @@ export const useGetSubcategories = (
       sorting, //refetch when sorting changes
     ],
     queryFn: async () => {
+      let columnParams = "";
+      columnFilters.forEach((item) => {
+        const { id, value } = item;
+        columnParams += `&${id}=${value}`;
+      });
+
+      let sortingParam: string = "";
+      if (sorting.length > 0) {
+        const { id, desc } = sorting[0];
+        sortingParam = `&orderBy=${id}&order=${desc ? "desc" : "asc"}`;
+      }
+
       const params = `?limit=${pagination.pageSize}&page=${
         pagination.pageIndex + 1
-      }`
-
-      console.log(columnFilters);
+      }${globalFilter ? `&search=${globalFilter}` : ""}${columnParams}${sortingParam}`; 
       
+      console.log(params);
+      
+
       try {
         const response = await customFetch.get(
           `/subcategory${params}`
@@ -42,9 +55,9 @@ export const useGetSubcategories = (
           meta: {
             totalRowCount: Number(response.data.total),
           },
-        }       
+        };
 
-        return responseData
+        return responseData;
       } catch (error) {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 401) {
