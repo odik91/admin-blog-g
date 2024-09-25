@@ -1,3 +1,4 @@
+import SubcategoryTable from "@/components/subcategory/SubcategoryTable";
 import BreadCrumb from "../../components/BreadCrumb";
 
 const Subcategory = () => {
@@ -10,8 +11,10 @@ const Subcategory = () => {
       }}
     >
       <BreadCrumb link="/" target="home" current="subcategory" />
-      <main className="m-2 p-3 bg-white rounded-md shadow-md"></main>
+      <main className="m-2 p-3 bg-white rounded-md shadow-md">
+        <SubcategoryTable />
+      </main>
     </div>
-  )
-}
-export default Subcategory
+  );
+};
+export default Subcategory;
