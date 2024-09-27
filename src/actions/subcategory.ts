@@ -1,13 +1,15 @@
 import { logoutUser } from "@/features/user/userSlice";
 import { useAppDispatch } from "@/hooks/userCustomHook";
+import { Subcategory, SubcategoryApiResponse } from "@/types/subcategoryType";
 import customFetch from "@/utils/axios";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   MRT_ColumnFiltersState,
   MRT_PaginationState,
   MRT_SortingState,
 } from "material-react-table";
+import { v4 as uuidv4 } from 'uuid';
 
 export const useGetSubcategories = (
   columnFilters: MRT_ColumnFiltersState,
@@ -40,15 +42,12 @@ export const useGetSubcategories = (
 
       const params = `?limit=${pagination.pageSize}&page=${
         pagination.pageIndex + 1
-      }${globalFilter ? `&search=${globalFilter}` : ""}${columnParams}${sortingParam}`; 
-      
-      console.log(params);
-      
+      }${
+        globalFilter ? `&search=${globalFilter}` : ""
+      }${columnParams}${sortingParam}`;
 
       try {
-        const response = await customFetch.get(
-          `/subcategory${params}`
-        );
+        const response = await customFetch.get(`/subcategory${params}`);
 
         const responseData = {
           data: response.data.data,
@@ -68,5 +67,58 @@ export const useGetSubcategories = (
     },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 30,
+  });
+};
+
+export const useCreateSubcategory = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (subcategory: Subcategory) => {
+      try {
+        await customFetch.post("/subcategory", subcategory);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+        }
+      }
+    },
+    onMutate: async (subcategory: Subcategory) => {
+      // Membatalkan refetch agar tidak menimpa perubahan optimistik
+      await queryClient.cancelQueries({ queryKey: ["subcategory"] });
+
+      // snapshoot the previous value
+      const previousSubcategory =
+        queryClient.getQueryData<SubcategoryApiResponse>(["subcategory"]);
+
+      // Menambahkan ID sementara untuk subkategori baru
+      subcategory.id = uuidv4();
+
+      // Update data optimistik
+      if (previousSubcategory) {
+        queryClient.setQueryData<SubcategoryApiResponse>(["subcategory"], {
+          ...previousSubcategory,
+          data: [...previousSubcategory.data, subcategory],
+        });
+
+        // Mengembalikan data snapshot sebelumnya
+        return { previousSubcategory };
+      }
+    },
+    // Mengembalikan state ke keadaan sebelumnya jika terjadi kesalahan
+    onError: (_error, _subcategory, context) => {
+      if (context?.previousSubcategory) {
+        queryClient.setQueryData<SubcategoryApiResponse>(
+          ["subcategory"],
+          context.previousSubcategory
+        );
+      }
+    },
+    // Invalidasi query setelah mutasi selesai atau error
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["subcategory"] });
+    },
   });
 };

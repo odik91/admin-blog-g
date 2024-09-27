@@ -1,5 +1,6 @@
 import { logoutUser } from "@/features/user/userSlice";
 import { useAppDispatch } from "@/hooks/userCustomHook";
+import { CategoryForSelect } from "@/types/categoryTipe";
 import customFetch from "@/utils/axios";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -57,6 +58,28 @@ export const useGetCategories = (
           }
         }
         throw error;
+      }
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 30, // data will invalidate in 3 minute
+  });
+};
+
+export const useGetCategoriesNonFiltering = () => {
+  const dispatch = useAppDispatch();
+  return useQuery({
+    queryKey: ["select-category"],
+    queryFn: async () => {
+      try {
+        const response = await customFetch.get(`/category/non-sort`);
+        return response.data;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+        }
+        return error
       }
     },
     refetchOnWindowFocus: false,

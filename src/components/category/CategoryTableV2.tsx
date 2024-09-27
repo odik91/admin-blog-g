@@ -32,13 +32,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-export type CategoryApiResponse = {
-  data: Array<CategoryData>;
-  meta: {
-    totalRowCount: number;
-  };
-};
-
 const CategoryTableV2 = () => {
   const { is_loading } = useAppSelector((store) => store.category);
   const queryClient = useQueryClient();

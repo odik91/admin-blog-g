@@ -1,7 +1,12 @@
-import { useGetSubcategories } from "@/actions/subcategory";
+import { useGetCategoriesNonFiltering } from "@/actions/category";
+import {
+  useCreateSubcategory,
+  useGetSubcategories,
+} from "@/actions/subcategory";
+import { CategoryForSelect } from "@/types/categoryTipe";
+import { Subcategory } from "@/types/subcategoryType";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
-import { useQueryClient } from "@tanstack/react-query";
+import { Box, IconButton, MenuItem, Tooltip, Typography } from "@mui/material";
 import {
   MaterialReactTable,
   MRT_ColumnDef,
@@ -17,34 +22,24 @@ import { useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { Button } from "../ui/button";
+import { Badge } from "@/components/ui/badge";
 
-// type GetCategory = {
-//   id: number | string;
-//   name: string;
-//   slug: string;
-//   description: string;
-// };
-
-export type Subcategory = {
-  id: string;
-  category_id: number;
-  subcategory: string;
-  slug: string;
-  description: string;
-  is_active: boolean | number;
-  category_name?: string;
-};
-
-export type SubcategoryApiResponse = {
-  data: Array<Subcategory>;
-  meta: {
-    totalRowCount: number;
-  };
-};
+const actives = [
+  {
+    status: "inactive",
+    value: 0,
+  },
+  {
+    status: "active",
+    value: 1,
+  },
+];
 
 const SubcategoryTable = () => {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const { data: categories } = useGetCategoriesNonFiltering();
 
   // local state column filter
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
@@ -92,8 +87,23 @@ const SubcategoryTable = () => {
         header: "Category",
         enableEditing: true,
         enableColumnFilter: true,
+        muiEditTextFieldProps: ({ cell }) => ({
+          select: true,
+          required: true,
+          error: !!validationErrors[cell.id],
+          helperText: validationErrors[cell.id],
+          children: categories.map((category: CategoryForSelect) => (
+            <MenuItem key={category.id} value={category.id}>
+              {category.name}
+            </MenuItem>
+          )),
+        }),
         Cell: ({ row }) => {
-          return row.original.category_name;          
+          // Menampilkan nama kategori di cell berdasarkan category_id
+          const category = categories.find(
+            (cat: { id: number }) => cat.id === row.original.category_id
+          );
+          return category ? category.name : "Unknown Category";
         },
       },
       {
@@ -105,9 +115,9 @@ const SubcategoryTable = () => {
           error: !!validationErrors?.[cell.id],
           helperText: validationErrors?.[cell.id],
           onBlur: (event) => {
-            const validationError = validateRequired(event.currentTarget.value)
-              ? "Required"
-              : undefined;
+            const validationError = event.target.value
+              ? undefined
+              : "Subcategory is required";
             setValidationErrors({
               ...validationErrors,
               [cell.id]: validationError,
@@ -141,13 +151,13 @@ const SubcategoryTable = () => {
         enableColumnFilter: false,
         muiEditTextFieldProps: ({ cell, row }) => ({
           type: "text",
-          required: true,
+          required: false,
           error: !!validationErrors?.[cell.id],
           helperText: validationErrors?.[cell.id],
           onBlur: (event) => {
-            const validationError = validateRequired(event.currentTarget.value)
-              ? "Required"
-              : undefined;
+            const validationError = event.target.value
+              ? undefined
+              : "Description is required";
             setValidationErrors({
               ...validationErrors,
               [cell.id]: validationError,
@@ -174,18 +184,74 @@ const SubcategoryTable = () => {
           };
         },
       },
+      {
+        accessorKey: "is_active",
+        header: "Active",
+        enableEditing: true,
+        enableColumnFilter: true,
+        muiEditTextFieldProps: ({ cell }) => ({
+          select: true,
+          required: true,
+          error: !!validationErrors[cell.id],
+          helperText: validationErrors[cell.id],
+          children: actives.map((active) => (
+            <MenuItem key={active.value} value={active.value}>
+              {active.status}
+            </MenuItem>
+          )),
+        }),
+        Cell: ({ row }) => {
+          return row.original.is_active === 1 ? (
+            <Badge
+              variant="outline"
+              className="text-white bg-green-500 px-3 py-2"
+            >
+              Active
+            </Badge>
+          ) : (
+            <Badge variant="destructive" className="px-3 py-2">
+              Inactive
+            </Badge>
+          );
+        },
+      },
     ],
     [
       pagination.pageIndex,
       pagination.pageSize,
       editedSubcategory,
       validationErrors,
+      categories,
     ]
   );
 
+  // call create hook
+  const { mutateAsync: createSubcategory, isPending: isCreatingSubcategory } =
+    useCreateSubcategory();
+
   const handleCreateSubcategory: MRT_TableOptions<Subcategory>["onCreatingRowSave"] =
     async ({ values, table }) => {
-      console.log(values, table);
+      const newValidationErrors = validateSubcategory(values);
+      if (Object.values(newValidationErrors).some((error) => error)) {
+        setValidationErrors(newValidationErrors);
+        Swal.fire({
+          title: "Warning!",
+          icon: "warning",
+          html: `Please check again your input`,
+        });
+        return;
+      }
+
+      createSubcategory(values).then(() => {
+        Swal.fire({
+          title: "Success!",
+          icon: "success",
+          html: `Subcategory ${values.subcategory} added successfully`,
+        });
+
+        setValidationErrors({});
+        table.setCreatingRow(null);
+      });
     };
 
   const handleSaveSubcategory = async () => {
@@ -383,7 +449,7 @@ const SubcategoryTable = () => {
     },
     state: {
       isLoading: isLoadingSubcategory,
-      // isSaving: is_loading,
+      isSaving: isCreatingSubcategory,
       showAlertBanner: isLoadingSubcategoryError,
       showProgressBars: isFetchingSubcategory,
       columnFilters,
@@ -403,6 +469,8 @@ const validateSubcategory = (subcategory: Subcategory) => {
     subcategory: !validateRequired(subcategory.subcategory)
       ? "Subcategory is required"
       : "",
+    category_id: !subcategory.category_id ? "Category is required" : "",
+    is_active: !subcategory.is_active ? "Is active is required" : "",
   };
 };
 export default SubcategoryTable;
