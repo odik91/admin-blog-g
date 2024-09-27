@@ -1,6 +1,5 @@
 import { logoutUser } from "@/features/user/userSlice";
 import { useAppDispatch } from "@/hooks/userCustomHook";
-import { CategoryForSelect } from "@/types/categoryTipe";
 import customFetch from "@/utils/axios";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";

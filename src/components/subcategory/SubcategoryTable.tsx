@@ -6,7 +6,14 @@ import {
 import { CategoryForSelect } from "@/types/categoryTipe";
 import { Subcategory } from "@/types/subcategoryType";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Box, IconButton, MenuItem, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  MenuItem,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import {
   MaterialReactTable,
   MRT_ColumnDef,
@@ -87,7 +94,7 @@ const SubcategoryTable = () => {
         header: "Category",
         enableEditing: true,
         enableColumnFilter: true,
-        muiEditTextFieldProps: ({ cell }) => ({
+        muiEditTextFieldProps: ({ cell, row }) => ({
           select: true,
           required: true,
           error: !!validationErrors[cell.id],
@@ -97,6 +104,20 @@ const SubcategoryTable = () => {
               {category.name}
             </MenuItem>
           )),
+          onBlur: (event) => {
+            const validationError = event.target.value
+              ? undefined
+              : "Category is required";
+            setValidationErrors({
+              ...validationErrors,
+              [cell.id]: validationError,
+            });
+
+            setEditedSubcategory({
+              ...editedSubcategory,
+              [row.id]: row._valuesCache,
+            });
+          },
         }),
         Cell: ({ row }) => {
           // Menampilkan nama kategori di cell berdasarkan category_id
@@ -104,6 +125,20 @@ const SubcategoryTable = () => {
             (cat: { id: number }) => cat.id === row.original.category_id
           );
           return category ? category.name : "Unknown Category";
+        },
+        muiTableBodyCellProps: ({ cell }) => {
+          if (validationErrors[cell.id]) {
+            return {
+              style: {
+                backgroundColor: "#f8d7da",
+                color: "#721c24", // Teks warna merah jika ada error
+                border: "1px dashed #bd0013",
+              },
+            };
+          }
+          return {
+            style: {},
+          };
         },
       },
       {
@@ -189,7 +224,7 @@ const SubcategoryTable = () => {
         header: "Active",
         enableEditing: true,
         enableColumnFilter: true,
-        muiEditTextFieldProps: ({ cell }) => ({
+        muiEditTextFieldProps: ({ cell, row }) => ({
           select: true,
           required: true,
           error: !!validationErrors[cell.id],
@@ -199,8 +234,43 @@ const SubcategoryTable = () => {
               {active.status}
             </MenuItem>
           )),
+          onBlur: (event) => {
+            const validationError =
+              event.target.value.toString() === "0" ||
+              event.target.value.toString() === "1"
+                ? undefined
+                : "Select active is required";
+            setValidationErrors({
+              ...validationErrors,
+              [cell.id]: validationError,
+            });
+
+            setEditedSubcategory({
+              ...editedSubcategory,
+              [row.id]: row._valuesCache,
+            });
+          },
         }),
         Cell: ({ row }) => {
+          const filteredId = Object.values(editedSubcategory).filter(
+            (item) => item.id === row.original.id
+          );
+
+          if (filteredId.length > 0) {
+            return filteredId[0].is_active === 1 ? (
+              <Badge
+                variant="outline"
+                className="text-white bg-green-500 px-3 py-2"
+              >
+                Active
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="px-3 py-2">
+                Inactive
+              </Badge>
+            );
+          }
+
           return row.original.is_active === 1 ? (
             <Badge
               variant="outline"
@@ -213,6 +283,20 @@ const SubcategoryTable = () => {
               Inactive
             </Badge>
           );
+        },
+        muiTableBodyCellProps: ({ cell }) => {
+          if (validationErrors[cell.id]) {
+            return {
+              style: {
+                backgroundColor: "#f8d7da",
+                color: "#721c24", // Teks warna merah jika ada error
+                border: "1px dashed #bd0013",
+              },
+            };
+          }
+          return {
+            style: {},
+          };
         },
       },
     ],
@@ -420,8 +504,7 @@ const SubcategoryTable = () => {
             Object.values(validationErrors).some((error) => !!error)
           }
         >
-          {/* {is_loading ? <CircularProgress size={25} /> : "Save"} */}
-          Save
+          {isCreatingSubcategory ? <CircularProgress size={25} /> : "Save"}
         </Button>
         {Object.values(validationErrors).some((error) => !!error) && (
           <Typography color="error">
