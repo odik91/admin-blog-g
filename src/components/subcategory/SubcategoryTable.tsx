@@ -2,6 +2,7 @@ import { useGetCategoriesNonFiltering } from "@/actions/category";
 import {
   useCreateSubcategory,
   useGetSubcategories,
+  useMassUpdateSubcategory,
 } from "@/actions/subcategory";
 import { CategoryForSelect } from "@/types/categoryTipe";
 import { Subcategory } from "@/types/subcategoryType";
@@ -313,6 +314,11 @@ const SubcategoryTable = () => {
   const { mutateAsync: createSubcategory, isPending: isCreatingSubcategory } =
     useCreateSubcategory();
 
+  const {
+    mutateAsync: updateSubcategories,
+    isPending: isUpdatingSubcategories,
+  } = useMassUpdateSubcategory();
+
   const handleCreateSubcategory: MRT_TableOptions<Subcategory>["onCreatingRowSave"] =
     async ({ values, table }) => {
       const newValidationErrors = validateSubcategory(values);
@@ -339,7 +345,34 @@ const SubcategoryTable = () => {
     };
 
   const handleSaveSubcategory = async () => {
-    console.log("save subcategory");
+    if (Object.values(validationErrors).some((error) => error)) {
+      setValidationErrors(validationErrors);
+      Swal.fire({
+        title: "Warning!",
+        icon: "warning",
+        html: `Please check again your input`,
+      });
+      return;
+    }
+
+    // const data: Subcategory = []
+    updateSubcategories(Object.values(editedSubcategory)).then((res) => {
+      if (res?.status === 200) {
+        Swal.fire({
+          title: "Success!",
+          icon: "success",
+          html: res?.data.message,
+        });
+        setValidationErrors({});
+        setEditedSubcategory({});
+      } else {        
+        Swal.fire({
+          title: "Error!",
+          icon: "error",
+          html: res?.data.message,
+        });
+      }
+    });
   };
 
   const openDeleteSubcategoryConfirmModal = (row: MRT_Row<Subcategory>) => {
@@ -504,7 +537,7 @@ const SubcategoryTable = () => {
             Object.values(validationErrors).some((error) => !!error)
           }
         >
-          {isCreatingSubcategory ? <CircularProgress size={25} /> : "Save"}
+          {isUpdatingSubcategories ? <CircularProgress size={25} /> : "Save"}
         </Button>
         {Object.values(validationErrors).some((error) => !!error) && (
           <Typography color="error">
@@ -532,7 +565,7 @@ const SubcategoryTable = () => {
     },
     state: {
       isLoading: isLoadingSubcategory,
-      isSaving: isCreatingSubcategory,
+      isSaving: isCreatingSubcategory || isUpdatingSubcategories,
       showAlertBanner: isLoadingSubcategoryError,
       showProgressBars: isFetchingSubcategory,
       columnFilters,

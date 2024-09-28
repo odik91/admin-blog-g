@@ -9,7 +9,8 @@ import {
   MRT_PaginationState,
   MRT_SortingState,
 } from "material-react-table";
-import { v4 as uuidv4 } from 'uuid';
+
+import { v4 as uuid } from "uuid";
 
 export const useGetSubcategories = (
   columnFilters: MRT_ColumnFiltersState,
@@ -94,7 +95,7 @@ export const useCreateSubcategory = () => {
         queryClient.getQueryData<SubcategoryApiResponse>(["subcategory"]);
 
       // Menambahkan ID sementara untuk subkategori baru
-      subcategory.id = uuidv4();
+      subcategory.id = uuid();
 
       // Update data optimistik
       if (previousSubcategory) {
@@ -117,6 +118,29 @@ export const useCreateSubcategory = () => {
       }
     },
     // Invalidasi query setelah mutasi selesai atau error
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["subcategory"] });
+    },
+  });
+};
+
+export const useMassUpdateSubcategory = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (subcategories: Subcategory[]) => {
+      try {
+        const response = await customFetch.patch("/subcategory", subcategories);
+        return response;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+          return error.response;
+        }
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["subcategory"] });
     },
