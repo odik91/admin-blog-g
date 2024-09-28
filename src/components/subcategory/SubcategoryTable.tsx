@@ -1,6 +1,7 @@
 import { useGetCategoriesNonFiltering } from "@/actions/category";
 import {
   useCreateSubcategory,
+  useDeleteSubcategory,
   useGetSubcategories,
   useMassUpdateSubcategory,
 } from "@/actions/subcategory";
@@ -319,6 +320,9 @@ const SubcategoryTable = () => {
     isPending: isUpdatingSubcategories,
   } = useMassUpdateSubcategory();
 
+  const { mutateAsync: deleteSubcategory, isPending: isDeletingSubcategory } =
+    useDeleteSubcategory();
+
   const handleCreateSubcategory: MRT_TableOptions<Subcategory>["onCreatingRowSave"] =
     async ({ values, table }) => {
       const newValidationErrors = validateSubcategory(values);
@@ -365,7 +369,7 @@ const SubcategoryTable = () => {
         });
         setValidationErrors({});
         setEditedSubcategory({});
-      } else {        
+      } else {
         Swal.fire({
           title: "Error!",
           icon: "error",
@@ -384,8 +388,25 @@ const SubcategoryTable = () => {
       confirmButtonText: "Confirm",
       showCancelButton: true,
     }).then((result) => {
+      const id = row.original.id as string;
       if (result.isConfirmed) {
-        Swal.fire("Item deleted", "", "info");
+        deleteSubcategory(id).then((res) => {
+          if (res?.status === 200) {
+            Swal.fire({
+              title: "Success!",
+              icon: "success",
+              html: res?.data.message,
+            });
+            setValidationErrors({});
+            setEditedSubcategory({});
+          } else {
+            Swal.fire({
+              title: "Error!",
+              icon: "error",
+              html: res?.data.message,
+            });
+          }
+        });
       } else if (result.isDenied) {
         Swal.fire("Item not deleted", "", "info");
       }
@@ -565,7 +586,10 @@ const SubcategoryTable = () => {
     },
     state: {
       isLoading: isLoadingSubcategory,
-      isSaving: isCreatingSubcategory || isUpdatingSubcategories,
+      isSaving:
+        isCreatingSubcategory ||
+        isUpdatingSubcategories ||
+        isDeletingSubcategory,
       showAlertBanner: isLoadingSubcategoryError,
       showProgressBars: isFetchingSubcategory,
       columnFilters,

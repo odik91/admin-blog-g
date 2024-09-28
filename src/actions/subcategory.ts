@@ -146,3 +146,26 @@ export const useMassUpdateSubcategory = () => {
     },
   });
 };
+
+export const useDeleteSubcategory = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      try {
+        const response = await customFetch.delete(`/subcategory/${id}`);
+        return response;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+          return error.response;
+        }
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["subcategory"] });
+    },
+  });
+};
