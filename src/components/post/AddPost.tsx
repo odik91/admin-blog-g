@@ -16,6 +16,7 @@ import { Editor } from "@tinymce/tinymce-react";
 import { Switch } from "../ui/switch";
 import SelectAsync from "./SelectAsync";
 import SelectSearch from "./SelectSearch";
+import InputText from "./InputText";
 
 const formSchema = z.object({
   category_id: z
@@ -216,46 +217,15 @@ const AddPost = () => {
                 />
 
                 {/* title */}
-                <FormField
-                  control={control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        Title <span className="text-red-500">* </span>(
-                        <span className="text-red-500">
-                          {titleLength.chars}
-                        </span>
-                        /300chars)
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Input
-                          className={
-                            !titleLength.changed
-                              ? ""
-                              : titleLength.chars > 5 && titleLength.changed
-                              ? "border border-green-500 rounded-sm"
-                              : "border border-red-500 rounded-sm"
-                          }
-                          placeholder="Enter post title"
-                          {...field}
-                          onChange={(e) => {
-                            // console.log(e.target.value.length);
-                            if (e.target.value.length <= 300) {
-                              setTitleLength({
-                                changed: true,
-                                chars: e.target.value.length,
-                              });
-                              setValue("title", e.target.value);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <InputText
+                  inputName="title"
+                  title="title"
+                  placeholder="Enter post title"
+                  minLength={5}
+                  maxLength={300}
+                  form={form}
                 />
+
                 {/* thumbnail */}
                 <FormField
                   control={control}
@@ -318,86 +288,32 @@ const AddPost = () => {
                 <h1 className="font-semibold text-center">SEO Content</h1>
                 <Separator className="my-3" />
                 {/* meta_description */}
-                <FormField
-                  control={control}
-                  name="meta_description"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        Meta Description<span className="text-red-500">* </span>
-                        (
-                        <span className="text-red-500">
-                          {metaDescription.chars}
-                        </span>
-                        /300chars)
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Input
-                          className={
-                            !metaDescription.changed
-                              ? ""
-                              : metaDescription.chars > 5 &&
-                                metaDescription.changed
-                              ? "border border-green-500 rounded-sm"
-                              : "border border-red-500 rounded-sm"
-                          }
-                          placeholder="enter meta description"
-                          {...field}
-                          onChange={(e) => {
-                            // console.log(e.target.value.length);
-                            if (e.target.value.length <= 300) {
-                              setMetaDescription({
-                                changed: true,
-                                chars: e.target.value.length,
-                              });
-                              setValue("meta_description", e.target.value);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <InputText
+                  inputName="meta_description"
+                  title="Meta Description"
+                  placeholder="Enter meta description"
+                  minLength={5}
+                  maxLength={300}
+                  form={form}
                 />
 
                 {/* meta_keyword */}
-                <FormField
-                  control={control}
-                  name="meta_keyword"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        Meta Keywords <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Input
-                          placeholder="Enter a meta keyword (if more than one, sparate it with a ',' comma)."
-                          {...field}
-                        />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <InputText
+                  inputName="meta_keyword"
+                  title="Meta Keywords"
+                  placeholder="Enter a meta keyword (if more than one, sparate it with a ',' comma)."
+                  minLength={5}
+                  form={form}
                 />
 
                 {/* seo title */}
-                <FormField
-                  control={control}
-                  name="seo_title"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        SEO Title <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Input placeholder="Enter the SEO title" {...field} />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <InputText
+                  inputName="seo_title"
+                  title="SEO Title"
+                  placeholder="Enter the SEO title"
+                  minLength={5}
+                  maxLength={300}
+                  form={form}
                 />
               </div>
 
