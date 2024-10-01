@@ -169,3 +169,35 @@ export const useDeleteSubcategory = () => {
     },
   });
 };
+
+export const useGetSubcategoriesNonFiltering = (
+  category_id: number | string
+) => {
+  const dispatch = useAppDispatch();
+  return useQuery({
+    queryKey: ["select-subcategories", category_id],
+    queryFn: async () => {
+      try {
+        const response = await customFetch.get(
+          `/subcategory/non-sort?category_id=${category_id}`
+        );
+
+        return response.data.map(
+          (subcategory: { id: string; subcategory: string }) => ({
+            value: subcategory.id, // `value` digunakan untuk ID unik
+            label: subcategory.subcategory, // `label` digunakan untuk teks tampilan
+          })
+        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+        }
+        throw error;
+      }
+    },
+    enabled: !!category_id, // Only fetch subcategories when category_id is selected
+    staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
+  });
+};

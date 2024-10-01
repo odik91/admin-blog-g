@@ -1,3 +1,4 @@
+import AddPost from "@/components/post/AddPost";
 import BreadCrumb from "../../components/BreadCrumb";
 
 const Post = () => {
@@ -10,8 +11,10 @@ const Post = () => {
       }}
     >
       <BreadCrumb link="/" target="home" current="post" />
-      <main className="m-2 p-3 bg-white rounded-md shadow-md"></main>
+      <main className="m-2 p-3 bg-white rounded-md shadow-md">
+        <AddPost />
+      </main>
     </div>
-  )
-}
-export default Post
+  );
+};
+export default Post;

@@ -1,5 +1,6 @@
 import { logoutUser } from "@/features/user/userSlice";
 import { useAppDispatch } from "@/hooks/userCustomHook";
+import { CategoryForSelect } from "@/types/categoryTipe";
 import customFetch from "@/utils/axios";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -71,14 +72,17 @@ export const useGetCategoriesNonFiltering = () => {
     queryFn: async () => {
       try {
         const response = await customFetch.get(`/category/non-sort`);
-        return response.data;
+        return response.data.map((category: CategoryForSelect) => ({
+          label: category.name,
+          value: category.id,
+        }));
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 401) {
             dispatch(logoutUser());
           }
         }
-        return error
+        return error;
       }
     },
     refetchOnWindowFocus: false,
