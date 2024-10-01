@@ -183,208 +183,226 @@ const AddPost = () => {
     console.log(values);
   };
 
+  const setOpenForm = () => {
+    setAddPost(!addPost);
+    if (!addPost) {
+      form.reset();
+    }
+  };
+
   return (
     <>
       <div className="flex justify-between items-center p-3 gap-3">
-        <Button variant="outline" onClick={() => setAddPost(!addPost)}>
-          Add Post
+        <Button variant="outline" onClick={setOpenForm}>
+          {!addPost ? "Add Post" : "Cancel"}
         </Button>
       </div>
-      <Card className="m-3 transform transition-all">
-        <CardHeader className="bg-slate-50 p-3">
-          <CardTitle className="text-center text-xl">Add New Post</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="border p-3 rounded-md shadow-md">
-                <h1 className="font-semibold text-center">Section Title</h1>
-                <Separator className="my-3" />
-                {/* select category */}
-                <SelectAsync
-                  form={form}
-                  loadOptions={loadOptions}
-                  categories={categories}
-                  isCategoriesLoading={isCategoriesLoading}
-                  isError={errors.category_id ? true : false}
-                />
+      {addPost && (
+        <Card className="m-3 transform transition-all scale-100">
+          <CardHeader className="bg-slate-50 p-3">
+            <CardTitle className="text-center text-xl">Add New Post</CardTitle>
+          </CardHeader>
+          <Separator />
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="border p-3 rounded-md shadow-md">
+                  <h1 className="font-semibold text-center">Section Title</h1>
+                  <Separator className="my-3" />
+                  {/* select category */}
+                  <SelectAsync
+                    form={form}
+                    loadOptions={loadOptions}
+                    categories={categories}
+                    isCategoriesLoading={isCategoriesLoading}
+                    isError={errors.category_id ? true : false}
+                  />
 
-                {/* Subcategory Field */}
-                <SelectSearch
-                  form={form}
-                  dataSelect={subcategories}
-                  isError={errors.subcategory_id ? true : false}
-                />
+                  {/* Subcategory Field */}
+                  <SelectSearch
+                    form={form}
+                    dataSelect={subcategories}
+                    isError={errors.subcategory_id ? true : false}
+                  />
 
-                {/* title */}
-                <InputText
-                  inputName="title"
-                  title="title"
-                  placeholder="Enter post title"
-                  minLength={5}
-                  maxLength={300}
-                  form={form}
-                />
+                  {/* title */}
+                  <InputText
+                    inputName="title"
+                    title="title"
+                    placeholder="Enter post title"
+                    minLength={5}
+                    maxLength={300}
+                    form={form}
+                  />
 
-                {/* thumbnail */}
-                <InputImage
-                  form={form}
-                  fieldName="thumbnail"
-                  maxSize={2}
-                  title="Thumbnail"
-                />
+                  {/* thumbnail */}
+                  <InputImage
+                    form={form}
+                    fieldName="thumbnail"
+                    maxSize={2}
+                    title="Thumbnail"
+                  />
 
-                {/* image */}
-                <InputImage
-                  form={form}
-                  fieldName="image"
-                  maxSize={3}
-                  title="Image"
-                />
-              </div>
-
-              <div className="border p-3 rounded-md shadow-md mt-4">
-                <h1 className="font-semibold text-center">SEO Content</h1>
-                <Separator className="my-3" />
-                {/* meta_description */}
-                <InputText
-                  inputName="meta_description"
-                  title="Meta Description"
-                  placeholder="Enter meta description"
-                  minLength={5}
-                  maxLength={300}
-                  form={form}
-                />
-
-                {/* meta_keyword */}
-                <InputText
-                  inputName="meta_keyword"
-                  title="Meta Keywords"
-                  placeholder="Enter a meta keyword (if more than one, sparate it with a ',' comma)."
-                  minLength={5}
-                  form={form}
-                />
-
-                {/* seo title */}
-                <InputText
-                  inputName="seo_title"
-                  title="SEO Title"
-                  placeholder="Enter the SEO title"
-                  minLength={5}
-                  maxLength={300}
-                  form={form}
-                />
-              </div>
-
-              <div className="border p-3 rounded-md shadow-md mt-4">
-                <label htmlFor="content" className="font-semibold text-center">
-                  Content
-                </label>
-                <Separator className="my-3" />
-                <Editor
-                  id="content"
-                  apiKey={import.meta.env.VITE_EDITOR_API_KEY}
-                  licenseKey={import.meta.env.VITE_EDITOR_LICENSE_KEY}
-                  initialValue="<p>Write your content here...</p>"
-                  init={{
-                    height: 300,
-                    menubar: false,
-                    plugins: [
-                      "advlist",
-                      "autolink",
-                      "link",
-                      "image",
-                      "lists",
-                      "charmap",
-                      "preview",
-                      "anchor",
-                      "pagebreak",
-                      "searchreplace",
-                      "wordcount",
-                      "visualblocks",
-                      "code",
-                      "fullscreen",
-                      "insertdatetime",
-                      "media",
-                      "table",
-                      "emoticons",
-                      "help",
-                    ],
-                    toolbar:
-                      "undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | " +
-                      "bullist numlist outdent indent | link image | print preview media fullscreen | " +
-                      "forecolor backcolor emoticons | help",
-                  }}
-                  onEditorChange={(content) => {
-                    setValue("content", content); // Update form state when TinyMCE content changes
-                  }}
-                />
-                {errors.content && (
-                  <p className="px-2 text-red-600 text-sm">
-                    {errors.content.message}
-                  </p>
-                )}
-
-                <div className="mt-3 p-2">
-                  <FormField
-                    control={form.control}
-                    name="is_active"
-                    render={({ field }) => (
-                      <FormItem className="grid grid-cols-3 items-center gap-1">
-                        <FormLabel>
-                          Publish post?<span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl className="col-span-2">
-                          <Controller
-                            name="is_active"
-                            control={form.control}
-                            defaultValue={field.value}
-                            render={({ field: controllerField }) => (
-                              <Select
-                                value={controllerField.value}
-                                onValueChange={(value) =>
-                                  controllerField.onChange(value)
-                                }
-                              >
-                                <SelectTrigger className="w-[180px]">
-                                  <SelectValue placeholder="Posting" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem
-                                    value="active"
-                                    className="text-green-500"
-                                  >
-                                    Yes
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="inactive"
-                                    className="text-red-500"
-                                  >
-                                    No
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            )}
-                          />
-                        </FormControl>
-                        <div></div>
-                        <FormMessage className="col-span-2" />
-                      </FormItem>
-                    )}
+                  {/* image */}
+                  <InputImage
+                    form={form}
+                    fieldName="image"
+                    maxSize={3}
+                    title="Image"
                   />
                 </div>
-              </div>
-              <div className="flex items-center justify-center mt-3">
-                <Button type="submit" className="w-full">
-                  {/* {is_loading ? "Please wait..." : "Save"} */}
-                  Save
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+
+                <div className="border p-3 rounded-md shadow-md mt-4">
+                  <h1 className="font-semibold text-center">SEO Content</h1>
+                  <Separator className="my-3" />
+                  {/* meta_description */}
+                  <InputText
+                    inputName="meta_description"
+                    title="Meta Description"
+                    placeholder="Enter meta description"
+                    minLength={5}
+                    maxLength={300}
+                    form={form}
+                  />
+
+                  {/* meta_keyword */}
+                  <InputText
+                    inputName="meta_keyword"
+                    title="Meta Keywords"
+                    placeholder="Enter a meta keyword (if more than one, sparate it with a ',' comma)."
+                    minLength={5}
+                    form={form}
+                  />
+
+                  {/* seo title */}
+                  <InputText
+                    inputName="seo_title"
+                    title="SEO Title"
+                    placeholder="Enter the SEO title"
+                    minLength={5}
+                    maxLength={300}
+                    form={form}
+                  />
+                </div>
+
+                <div className="border p-3 rounded-md shadow-md mt-4">
+                  <label
+                    htmlFor="content"
+                    className="font-semibold text-center"
+                  >
+                    Content
+                  </label>
+                  <Separator className="my-3" />
+                  <Editor
+                    id="content"
+                    apiKey={import.meta.env.VITE_EDITOR_API_KEY}
+                    licenseKey={import.meta.env.VITE_EDITOR_LICENSE_KEY}
+                    initialValue="<p>Write your content here...</p>"
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: [
+                        "advlist",
+                        "autolink",
+                        "link",
+                        "image",
+                        "lists",
+                        "charmap",
+                        "preview",
+                        "anchor",
+                        "pagebreak",
+                        "searchreplace",
+                        "wordcount",
+                        "visualblocks",
+                        "code",
+                        "fullscreen",
+                        "insertdatetime",
+                        "media",
+                        "table",
+                        "emoticons",
+                        "help",
+                      ],
+                      toolbar:
+                        "undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | " +
+                        "bullist numlist outdent indent | link image | print preview media fullscreen | " +
+                        "forecolor backcolor emoticons | help",
+                    }}
+                    onEditorChange={(content) => {
+                      setValue("content", content); // Update form state when TinyMCE content changes
+                    }}
+                  />
+                  {errors.content && (
+                    <p className="px-2 text-red-600 text-sm">
+                      {errors.content.message}
+                    </p>
+                  )}
+
+                  <div className="mt-3 p-2">
+                    <FormField
+                      control={form.control}
+                      name="is_active"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-3 items-center gap-1">
+                          <FormLabel>
+                            Publish post?<span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-2">
+                            <Controller
+                              name="is_active"
+                              control={form.control}
+                              defaultValue={field.value}
+                              render={({ field: controllerField }) => (
+                                <Select
+                                  value={controllerField.value}
+                                  onValueChange={(value) =>
+                                    controllerField.onChange(value)
+                                  }
+                                >
+                                  <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Posting" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem
+                                      value="active"
+                                      className="text-green-500"
+                                    >
+                                      Yes
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="inactive"
+                                      className="text-red-500"
+                                    >
+                                      No
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                          </FormControl>
+                          <div></div>
+                          <FormMessage className="col-span-2" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-center mt-3">
+                  <Button type="submit" className="w-full">
+                    {/* {is_loading ? "Please wait..." : "Save"} */}
+                    Save
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus
+        nostrum eaque amet, fugiat totam, doloremque aut, dolorum quibusdam iste
+        quae a. Voluptatibus neque earum quos, perferendis sapiente eius quas
+        quis.
+      </p>
     </>
   );
 };
