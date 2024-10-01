@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CardContent, FormControl } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import Select from "react-select";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle } from "../ui/card";
@@ -16,6 +15,7 @@ import { OptionType } from "@/types/subcategoryType";
 import { Editor } from "@tinymce/tinymce-react";
 import { Switch } from "../ui/switch";
 import SelectAsync from "./SelectAsync";
+import SelectSearch from "./SelectSearch";
 
 const formSchema = z.object({
   category_id: z
@@ -209,42 +209,10 @@ const AddPost = () => {
                 />
 
                 {/* Subcategory Field */}
-                <FormField
-                  control={control}
-                  name="subcategory_id"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        Subcategory <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Select
-                          className={
-                            errors.subcategory_id
-                              ? "border border-red-500 rounded-sm"
-                              : form.getValues("subcategory_id")
-                              ? "border border-green-500 rounded-sm"
-                              : ""
-                          }
-                          options={subcategories || []}
-                          {...field}
-                          value={
-                            subcategories?.find(
-                              (option: { value: string }) =>
-                                option.value === field.value
-                            ) || null
-                          } // Map the value to an OptionType object
-                          onChange={(option: OptionType | null) => {
-                            const subcategory_data = option?.value || "";
-                            field.onChange(subcategory_data);
-                            setValue("subcategory_id", subcategory_data);
-                          }}
-                        />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <SelectSearch
+                  form={form}
+                  dataSelect={subcategories}
+                  isError={errors.subcategory_id ? true : false}
                 />
 
                 {/* title */}
