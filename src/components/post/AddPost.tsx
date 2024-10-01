@@ -9,14 +9,8 @@ import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Separator } from "../ui/separator";
-
 import { OptionType } from "@/types/subcategoryType";
 import { Editor } from "@tinymce/tinymce-react";
-import { Switch } from "../ui/switch";
-import SelectAsync from "./SelectAsync";
-import SelectSearch from "./SelectSearch";
-import InputText from "./InputText";
-import InputImage from "./InputImage";
 import {
   Select,
   SelectContent,
@@ -24,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import InputImage from "./InputImage";
+import InputText from "./InputText";
+import SelectAsync from "./SelectAsync";
+import SelectSearch from "./SelectSearch";
+import { Controller } from "react-hook-form";
 
 const formSchema = z.object({
   category_id: z
@@ -191,7 +190,7 @@ const AddPost = () => {
           Add Post
         </Button>
       </div>
-      <Card className="m-3">
+      <Card className="m-3 transform transition-all">
         <CardHeader className="bg-slate-50 p-3">
           <CardTitle className="text-center text-xl">Add New Post</CardTitle>
         </CardHeader>
@@ -337,35 +336,37 @@ const AddPost = () => {
                           Publish post?<span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl className="col-span-2">
-                          {/* <div className="flex justify-start items-center">
-                            <span className="p-2 text-red-600">No</span>
-                            <Switch
-                              id="is_active"
-                              {...field}
-                              onChange={() =>
-                                setValue(
-                                  "is_active",
-                                  !form.getValues("is_active")
-                                )
-                              }
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                            <span className="p-2 text-green-600">Yes</span>
-                          </div> */}
-                          <Select
-                            {...field}
-                            onValueChange={field.onChange}
+                          <Controller
+                            name="is_active"
+                            control={form.control}
                             defaultValue={field.value}
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Posting" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="active" className="text-green-500">Yes</SelectItem>
-                              <SelectItem value="inactive" className="text-red-500">No</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            render={({ field: controllerField }) => (
+                              <Select
+                                value={controllerField.value}
+                                onValueChange={(value) =>
+                                  controllerField.onChange(value)
+                                }
+                              >
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="Posting" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem
+                                    value="active"
+                                    className="text-green-500"
+                                  >
+                                    Yes
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="inactive"
+                                    className="text-red-500"
+                                  >
+                                    No
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </FormControl>
                         <div></div>
                         <FormMessage className="col-span-2" />
