@@ -8,7 +8,6 @@ import { z } from "zod";
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 
 import { OptionType } from "@/types/subcategoryType";
@@ -17,6 +16,14 @@ import { Switch } from "../ui/switch";
 import SelectAsync from "./SelectAsync";
 import SelectSearch from "./SelectSearch";
 import InputText from "./InputText";
+import InputImage from "./InputImage";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const formSchema = z.object({
   category_id: z
@@ -65,17 +72,13 @@ const formSchema = z.object({
     }),
   meta_keyword: z.string().min(3, { message: "Please insert meta keyword" }),
   seo_title: z.string().min(3, { message: "Please insert seo title" }),
-  is_active: z.enum(["active", "inactive"]),
   content: z.string().min(3, { message: "Please insert post content" }),
+  // is_active: z.boolean().optional(),
+  is_active: z.enum(["active", "inactive"]),
 });
 
 const AddPost = () => {
   const [addPost, setAddPost] = useState(false);
-  const [titleLength, setTitleLength] = useState({ changed: false, chars: 0 });
-  const [metaDescription, setMetaDescription] = useState({
-    changed: false,
-    chars: 0,
-  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -95,7 +98,6 @@ const AddPost = () => {
 
   const {
     handleSubmit,
-    control,
     setValue,
     formState: { errors },
   } = form;
@@ -227,60 +229,19 @@ const AddPost = () => {
                 />
 
                 {/* thumbnail */}
-                <FormField
-                  control={control}
-                  name="thumbnail"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        Thumbnail{" "}
-                        <span className="text-red-500">* (max 2mb)</span>
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Input
-                          id="thumbnail"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files
-                              ? e.target.files[0]
-                              : null;
-                            field.onChange(file ? [file] : null); // Ensure file list is passed
-                          }}
-                        />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <InputImage
+                  form={form}
+                  fieldName="thumbnail"
+                  maxSize={2}
+                  title="Thumbnail"
                 />
 
                 {/* image */}
-                <FormField
-                  control={control}
-                  name="image"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 items-center gap-1">
-                      <FormLabel>
-                        Image <span className="text-red-500">* (max 3mb)</span>
-                      </FormLabel>
-                      <FormControl className="col-span-2">
-                        <Input
-                          id="image"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files
-                              ? e.target.files[0]
-                              : null;
-                            field.onChange(file ? [file] : null); // Ensure file list is passed
-                          }}
-                        />
-                      </FormControl>
-                      <div></div>
-                      <FormMessage className="col-span-2" />
-                    </FormItem>
-                  )}
+                <InputImage
+                  form={form}
+                  fieldName="image"
+                  maxSize={3}
+                  title="Image"
                 />
               </div>
 
@@ -324,8 +285,8 @@ const AddPost = () => {
                 <Separator className="my-3" />
                 <Editor
                   id="content"
-                  apiKey="qjamfcgnfhw26lja33d33fxy5ugdq62ob0peiyn3v2xcijvw"
-                  licenseKey="gpl"
+                  apiKey={import.meta.env.VITE_EDITOR_API_KEY}
+                  licenseKey={import.meta.env.VITE_EDITOR_LICENSE_KEY}
                   initialValue="<p>Write your content here...</p>"
                   init={{
                     height: 300,
@@ -376,11 +337,35 @@ const AddPost = () => {
                           Publish post?<span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl className="col-span-2">
-                          <div className="flex justify-start items-center">
+                          {/* <div className="flex justify-start items-center">
                             <span className="p-2 text-red-600">No</span>
-                            <Switch id="is_active" {...field} />
+                            <Switch
+                              id="is_active"
+                              {...field}
+                              onChange={() =>
+                                setValue(
+                                  "is_active",
+                                  !form.getValues("is_active")
+                                )
+                              }
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                             <span className="p-2 text-green-600">Yes</span>
-                          </div>
+                          </div> */}
+                          <Select
+                            {...field}
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Posting" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active" className="text-green-500">Yes</SelectItem>
+                              <SelectItem value="inactive" className="text-red-500">No</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <div></div>
                         <FormMessage className="col-span-2" />

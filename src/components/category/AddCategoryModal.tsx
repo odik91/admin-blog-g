@@ -74,6 +74,7 @@ const AddCategoryModal = () => {
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-3 items-center gap-1">
                     <FormLabel>
+                      <span className="text-red-500">*</span>Category
                     </FormLabel>
                     <FormControl className="col-span-2">
                       <Input placeholder="enter category name" {...field} />
@@ -86,7 +87,7 @@ const AddCategoryModal = () => {
               <FormField
                 control={form.control}
                 name="description"
-                render={({ field }) => (
+                render={({ field }) =>  (
                   <FormItem className="grid grid-cols-3 items-center gap-1">
                     <FormLabel>Description</FormLabel>
                     <FormControl className="col-span-2">

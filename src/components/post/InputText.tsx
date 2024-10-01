@@ -66,6 +66,7 @@ const InputText = ({
                     chars: e.target.value.length,
                   });
                   form.setValue(inputName, e.target.value);
+                  form.clearErrors(inputName);
                 }
               }}
             />
