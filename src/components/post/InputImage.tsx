@@ -8,7 +8,7 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 
-type InputFileProps = "image" | "thumbnail";
+type InputFileProps = "image";
 
 const InputImage = ({
   form,
@@ -55,7 +55,7 @@ const InputImage = ({
                       message: `Image size should not exceed ${maxSize}MB`,
                     });
                   } else {
-                    form.clearErrors(fieldName)
+                    form.clearErrors(fieldName);
                   }
                 }
               }}

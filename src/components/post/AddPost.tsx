@@ -23,6 +23,8 @@ import InputText from "./InputText";
 import SelectAsync from "./SelectAsync";
 import SelectSearch from "./SelectSearch";
 import { Controller } from "react-hook-form";
+import { useAddPost } from "@/actions/post";
+import Swal from "sweetalert2";
 
 const formSchema = z.object({
   category_id: z
@@ -36,20 +38,6 @@ const formSchema = z.object({
   title: z.string().min(5, { message: "Please insert post title" }).max(300, {
     message: "Title length should not be longer than 300 characters.",
   }),
-  thumbnail: z
-    .instanceof(FileList, { message: "Thumbnail is required" })
-    .refine((files) => files, { message: "Thumbnail is required" })
-    .refine((files) => files && files.length > 0, {
-      message: "File is required",
-    })
-    .refine(
-      (files) => files.length === 0 || files[0]?.size <= 2 * 1024 * 1024, // 2MB max size
-      { message: "File must be less than 2MB" }
-    )
-    .refine(
-      (files) => files.length === 0 || files[0]?.type.startsWith("image/"), // Check file type
-      { message: "Only image files are allowed" }
-    ),
   image: z
     .instanceof(FileList, { message: "Image is required" })
     .refine((files) => files, { message: "Image is required" })
@@ -85,7 +73,6 @@ const AddPost = () => {
       category_id: "",
       subcategory_id: "",
       title: "",
-      thumbnail: undefined,
       image: undefined,
       meta_description: "",
       meta_keyword: "",
@@ -179,8 +166,17 @@ const AddPost = () => {
     form.watch("category_id")
   );
 
+  const { mutateAsync: addingPost, isPending: isAddPost } = useAddPost();
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    addingPost(values).then((res) => {
+      Swal.fire({
+        title: "Success!",
+        icon: "success",
+        html: res?.message,
+      });
+      setAddPost(false)
+    });
   };
 
   const setOpenForm = () => {
@@ -235,20 +231,12 @@ const AddPost = () => {
                     form={form}
                   />
 
-                  {/* thumbnail */}
-                  <InputImage
-                    form={form}
-                    fieldName="thumbnail"
-                    maxSize={2}
-                    title="Thumbnail"
-                  />
-
                   {/* image */}
                   <InputImage
                     form={form}
                     fieldName="image"
                     maxSize={3}
-                    title="Image"
+                    title="Headline Image"
                   />
                 </div>
 
@@ -388,8 +376,8 @@ const AddPost = () => {
                 </div>
                 <div className="flex items-center justify-center mt-3">
                   <Button type="submit" className="w-full">
-                    {/* {is_loading ? "Please wait..." : "Save"} */}
-                    Save
+                    {isAddPost ? "Please wait..." : "Save"}
+                    {/* Save */}
                   </Button>
                 </div>
               </form>

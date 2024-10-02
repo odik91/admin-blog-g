@@ -26,7 +26,6 @@ export type FormType = UseFormReturn<
     content: string;
     image: FileList;
     subcategory_id: string;
-    thumbnail: FileList;
     meta_description: string;
     meta_keyword: string;
     seo_title: string;
