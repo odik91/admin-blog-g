@@ -1,5 +1,6 @@
 import AddPost from "@/components/post/AddPost";
 import BreadCrumb from "../../components/BreadCrumb";
+import PostTable from "@/components/post/PostTable";
 
 const Post = () => {
   return (
@@ -13,6 +14,7 @@ const Post = () => {
       <BreadCrumb link="/" target="home" current="post" />
       <main className="m-2 p-3 bg-white rounded-md shadow-md">
         <AddPost />
+        <PostTable/>
       </main>
     </div>
   );

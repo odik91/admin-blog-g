@@ -1,9 +1,10 @@
 import { logoutUser } from "@/features/user/userSlice";
 import { useAppDispatch } from "@/hooks/userCustomHook";
-import { PostType } from "@/types/postType";
+import { PostApiResponse, PostType } from "@/types/postType";
 import customFetch from "@/utils/axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { MRT_PaginationState } from "material-react-table";
 
 export const useAddPost = () => {
   const dispatch = useAppDispatch();
@@ -49,3 +50,41 @@ export const useAddPost = () => {
     },
   });
 };
+
+export const useGetPosts = (
+  globalFilter: string,
+  pagination: MRT_PaginationState
+) => {
+  const dispatch = useAppDispatch();
+  return useQuery<PostApiResponse | string | object>({
+    queryKey: ["post", globalFilter, pagination],
+    queryFn: async () => {
+      const baseParams = `?limit=${pagination.pageSize}&page=${
+        pagination.pageIndex + 1
+      }${globalFilter ? `&search=${globalFilter}` : ""}`;
+
+      try {
+        const response = await customFetch.get(`/post${baseParams}`);
+        const responseData: PostApiResponse = {
+          data: response.data.data,
+          meta: {
+            totalRowCount: Number(response.data.total),
+          },
+        };        
+
+        return responseData;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+          return error.response?.statusText || "Error";
+        }
+        return "Unknown error";
+      }
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60, // cache in 1 minute
+  });
+};
+
