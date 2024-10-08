@@ -1,4 +1,4 @@
-import { useGetCategories } from "@/actions/category";
+import { useGetCategories } from "@/hooks/actions/category";
 import {
   CategoryData,
   createCategory,

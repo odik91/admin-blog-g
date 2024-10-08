@@ -1,5 +1,5 @@
-import { useGetCategoriesNonFiltering } from "@/actions/category";
-import { useGetSubcategoriesNonFiltering } from "@/actions/subcategory";
+import { useGetCategoriesNonFiltering } from "@/hooks/actions/category";
+import { useGetSubcategoriesNonFiltering } from "@/hooks/actions/subcategory";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CardContent, FormControl } from "@mui/material";
 import { useState } from "react";
@@ -23,7 +23,7 @@ import InputText from "./InputText";
 import SelectAsync from "./SelectAsync";
 import SelectSearch from "./SelectSearch";
 import { Controller } from "react-hook-form";
-import { useAddPost } from "@/actions/post";
+import { useAddPost } from "@/hooks/actions/post";
 import Swal from "sweetalert2";
 
 const formSchema = z.object({
@@ -175,7 +175,7 @@ const AddPost = () => {
         icon: "success",
         html: res?.message,
       });
-      setAddPost(false)
+      setAddPost(false);
     });
   };
 
@@ -385,12 +385,6 @@ const AddPost = () => {
           </CardContent>
         </Card>
       )}
-      <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus
-        nostrum eaque amet, fugiat totam, doloremque aut, dolorum quibusdam iste
-        quae a. Voluptatibus neque earum quos, perferendis sapiente eius quas
-        quis.
-      </p>
     </>
   );
 };

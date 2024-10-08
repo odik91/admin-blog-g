@@ -1,10 +1,10 @@
-import { useGetCategoriesNonFiltering } from "@/actions/category";
+import { useGetCategoriesNonFiltering } from "@/hooks/actions/category";
 import {
   useCreateSubcategory,
   useDeleteSubcategory,
   useGetSubcategories,
   useMassUpdateSubcategory,
-} from "@/actions/subcategory";
+} from "@/hooks/actions/subcategory";
 import { CategoryForSelect } from "@/types/categoryTipe";
 import { Subcategory } from "@/types/subcategoryType";
 import DeleteIcon from "@mui/icons-material/Delete";
