@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { useGetCategoriesNonFiltering } from "@/hooks/actions/category";
 import {
   useCreateSubcategory,
@@ -5,7 +6,6 @@ import {
   useGetSubcategories,
   useMassUpdateSubcategory,
 } from "@/hooks/actions/subcategory";
-import { CategoryForSelect } from "@/types/categoryTipe";
 import { Subcategory } from "@/types/subcategoryType";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
@@ -31,7 +31,6 @@ import { useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { Button } from "../ui/button";
-import { Badge } from "@/components/ui/badge";
 
 const actives = [
   {

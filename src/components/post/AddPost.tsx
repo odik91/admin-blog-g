@@ -170,12 +170,23 @@ const AddPost = () => {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     addingPost(values).then((res) => {
-      Swal.fire({
-        title: "Success!",
-        icon: "success",
-        html: res?.message,
-      });
-      setAddPost(false);
+      console.log(res);
+      
+      if (res) {
+        Swal.fire({
+          title: "Success!",
+          icon: "success",
+          html: res?.message,
+        });
+        setAddPost(false);
+        return;
+      } else {
+        Swal.fire({
+          title: "Error!",
+          icon: "error",
+          html: "Fail to post article",
+        });
+      }
     });
   };
 

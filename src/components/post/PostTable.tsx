@@ -98,6 +98,12 @@ const PostTable = () => {
         },
       },
       {
+        accessorKey: "get_user.name",
+        header: "Author",
+        enableEditing: false,
+        enableColumnFilter: false,
+      },
+      {
         accessorKey: "is_active",
         header: "Active",
         enableEditing: false,

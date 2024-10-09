@@ -11,6 +11,11 @@ export type PostType = {
   is_active: "active" | "inactive";
 };
 
+export type UserForData = {
+  id: number;
+  name: string;
+};
+
 export type PostCategory = {
   id: number;
   name: string;
@@ -35,6 +40,7 @@ export type PostMainData = {
   is_active: number | boolean;
   get_category: PostCategory;
   get_subcategory: PostSubategory;
+  get_user: UserForData;
 };
 
 export type PostApiResponse = {
