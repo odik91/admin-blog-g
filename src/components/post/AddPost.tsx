@@ -194,7 +194,7 @@ const AddPost = () => {
         </Button>
       </div>
       {addPost && (
-        <Card className="m-3 transform transition-all scale-100">
+        <Card className="transform transition-all scale-100">
           <CardHeader className="bg-slate-50 p-3">
             <CardTitle className="text-center text-xl">Add New Post</CardTitle>
           </CardHeader>

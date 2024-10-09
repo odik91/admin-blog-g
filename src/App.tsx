@@ -11,6 +11,7 @@ import {
   Post,
   Role,
   SharedLayout,
+  SinglePost,
   Subcategory,
   Submenu,
   User,
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="category" element={<Category />} />
           <Route path="subcategory" element={<Subcategory />} />
           <Route path="post" element={<Post />} />
+          <Route path="post/:id" element={<SinglePost />} />
           <Route path="role" element={<Role />} />
           <Route path="user" element={<User />} />
           <Route path="message" element={<Message />} />

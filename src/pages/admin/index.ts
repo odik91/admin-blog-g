@@ -10,6 +10,7 @@ import Subcategory from "./Subcategory";
 import Submenu from "./Submenu";
 import User from "./User";
 import SharedLayout from "./SharedLayout";
+import SinglePost from "./SinglePost";
 
 export {
   Category,
@@ -23,5 +24,6 @@ export {
   Subcategory,
   Submenu,
   User,
-  SharedLayout
+  SharedLayout,
+  SinglePost
 };

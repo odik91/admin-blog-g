@@ -9,7 +9,7 @@ import {
 } from "material-react-table";
 import { useMemo, useState } from "react";
 import { IoEyeOutline, IoTrashOutline } from "react-icons/io5";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -31,6 +31,8 @@ const PostTable = () => {
       : 0,
     pageSize: Number(searchParams.get("limit")) || 10,
   });
+
+  const navigate = useNavigate()
 
   // define post column
   const columns = useMemo<MRT_ColumnDef<PostMainData>[]>(
@@ -192,7 +194,7 @@ const PostTable = () => {
         <DropdownMenuContent align="end">
           <DropdownMenuItem
             className="flex justify-start items-center gap-3 cursor-pointer"
-            onClick={() => console.log("view", row.original.title)}
+            onClick={() => navigate(`${row.original.id}`)}
           >
             <IoEyeOutline className="text-xl" /> <span>View</span>
           </DropdownMenuItem>

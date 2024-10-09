@@ -101,11 +101,15 @@ const SubcategoryTable = () => {
           required: true,
           error: !!validationErrors[cell.id],
           helperText: validationErrors[cell.id],
-          children: categories.map((category: CategoryForSelect) => (
-            <MenuItem key={category.id} value={category.id}>
-              {category.name}
-            </MenuItem>
-          )),
+          children: categories.map(
+            (category: { label: string; value: number }) => {
+              return (
+                <MenuItem key={category.value} value={category.value}>
+                  {category.label}
+                </MenuItem>
+              );
+            }
+          ),
           onBlur: (event) => {
             const validationError = event.target.value
               ? undefined
@@ -124,9 +128,9 @@ const SubcategoryTable = () => {
         Cell: ({ row }) => {
           // Menampilkan nama kategori di cell berdasarkan category_id
           const category = categories.find(
-            (cat: { id: number }) => cat.id === row.original.category_id
+            (cat: { value: number }) => cat.value === row.original.category_id
           );
-          return category ? category.name : "Unknown Category";
+          return category ? category.label : "Unknown Category";
         },
         muiTableBodyCellProps: ({ cell }) => {
           if (validationErrors[cell.id]) {
@@ -325,6 +329,8 @@ const SubcategoryTable = () => {
 
   const handleCreateSubcategory: MRT_TableOptions<Subcategory>["onCreatingRowSave"] =
     async ({ values, table }) => {
+      // console.log(values);
+      // return;
       const newValidationErrors = validateSubcategory(values);
       if (Object.values(newValidationErrors).some((error) => error)) {
         setValidationErrors(newValidationErrors);
@@ -573,6 +579,7 @@ const SubcategoryTable = () => {
         onClick={() => {
           table.setCreatingRow(true);
         }}
+        disabled={table.getState().creatingRow ? true : false}
       >
         Add Subcategory
       </Button>
@@ -602,7 +609,7 @@ const SubcategoryTable = () => {
   return <MaterialReactTable table={table} />;
 };
 
-const validateRequired = (value: string) => !!value.length;
+const validateRequired = (value: string | number) => !!value.toString().length;
 
 const validateSubcategory = (subcategory: Subcategory) => {
   return {

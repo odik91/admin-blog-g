@@ -5,6 +5,7 @@ import customFetch from "@/utils/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { MRT_PaginationState } from "material-react-table";
+import Swal from "sweetalert2";
 
 export const useAddPost = () => {
   const dispatch = useAppDispatch();
@@ -70,7 +71,7 @@ export const useGetPosts = (
           meta: {
             totalRowCount: Number(response.data.total),
           },
-        };        
+        };
 
         return responseData;
       } catch (error: unknown) {
@@ -88,3 +89,40 @@ export const useGetPosts = (
   });
 };
 
+export const useGetSinglePost = (id: string) => {
+  const dispatch = useAppDispatch();
+  return useQuery({
+    queryKey: ["post", id],
+    queryFn: async () => {
+      try {
+        if (!id) return null;
+
+        const response = await customFetch.get(`post/${id}`);
+        return response.data;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+
+          // Menampilkan error dengan SweetAlert
+          Swal.fire({
+            title: "Error!",
+            icon: "error",
+            html: error.response?.statusText || "An error occurred",
+          });
+
+          // Return pesan error untuk bisa diakses di komponen
+          return Promise.reject(
+            error.response?.statusText || "Error fetching data"
+          );
+        }
+        return Promise.reject("Unexpected error");
+      }
+    },
+    enabled: id !== "",
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60, // cache in 1 minute
+  });
+};
