@@ -38,6 +38,7 @@ export type PostMainData = {
   seo_title: string;
   content: string;
   is_active: number | boolean;
+  created_at: string;
   get_category: PostCategory;
   get_subcategory: PostSubategory;
   get_user: UserForData;
