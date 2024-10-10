@@ -172,9 +172,7 @@ const AddPost = ({
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     addingPost(values).then((res) => {
-      console.log(res);
-
-      if (res) {
+      if (res?.post) {
         Swal.fire({
           title: "Success!",
           icon: "success",

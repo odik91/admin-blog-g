@@ -1,4 +1,4 @@
-import { useGetPosts } from "@/hooks/actions/post";
+import { useDeletePost, useGetPosts } from "@/hooks/actions/post";
 import { PostApiResponse, PostMainData } from "@/types/postType";
 import { MoreHorizontal } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { api_url } from "@/utils/axios";
+import Swal from "sweetalert2";
 
 const PostTable = ({ addPost }: { addPost: boolean }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -135,6 +136,8 @@ const PostTable = ({ addPost }: { addPost: boolean }) => {
   const tableData = mainData?.data ?? []; // Access 'data' safely
   const meta = mainData?.meta ?? { totalRowCount: 0 };
 
+  const { mutateAsync: deletePost, isPending: isDeletePost } = useDeletePost();
+
   const table = useMaterialReactTable({
     columns,
     data: tableData,
@@ -207,7 +210,34 @@ const PostTable = ({ addPost }: { addPost: boolean }) => {
           <DropdownMenuItem
             className="flex justify-start items-center gap-3 cursor-pointer"
             onClick={() => {
-              console.log("delete");
+              Swal.fire({
+                title: "Warning!",
+                icon: "warning",
+                html: `Are you sure want to delete<br><b>${row.original.title}?</b>`,
+                confirmButtonText: "Confirm",
+                showCancelButton: true,
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  const label = row.original.title;
+                  deletePost(row.original.id).then((res) => {
+                    if (res?.status === 200) {
+                      Swal.fire({
+                        title: "Success!",
+                        icon: "success",
+                        html: res.data.message,
+                      });
+                    } else {
+                      Swal.fire({
+                        title: "Error!",
+                        icon: "error",
+                        html: `Fail to delete article ${label}`,
+                      });
+                    }
+                  });
+                } else if (result.isDenied) {
+                  Swal.fire("Item not deleted", "", "info");
+                }
+              });
             }}
           >
             <IoTrashOutline className="text-xl" /> <span>Delete</span>
@@ -225,10 +255,10 @@ const PostTable = ({ addPost }: { addPost: boolean }) => {
     },
     state: {
       isLoading: isLoadingPost,
-      // isSaving:
-      //   isCreatingSubcategory ||
-      //   isUpdatingSubcategories ||
-      //   isDeletingSubcategory,
+      isSaving:
+        //   isCreatingSubcategory ||
+        //   isUpdatingSubcategories ||
+        isDeletePost,
       showAlertBanner: isLoadingPostError,
       showProgressBars: isFetchPost,
       // columnFilters,

@@ -145,8 +145,8 @@ export const useUpdatePost = () => {
 
         if (!post.oldImage) {
           formData.append("image", post.image[0]);
-        }   
-        formData.append("_method", "PATCH");     
+        }
+        formData.append("_method", "PATCH");
 
         const response = await customFetch.post(`/post/${post.id}`, formData, {
           headers: {
@@ -154,6 +154,29 @@ export const useUpdatePost = () => {
           },
         });
         return response.data;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+          return error.response;
+        }
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["post"] });
+    },
+  });
+};
+
+export const useDeletePost = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      try {
+        const response = await customFetch.delete(`/post/${id}`);
+        return response;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 401) {

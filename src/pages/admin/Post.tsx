@@ -4,7 +4,8 @@ import PostTable from "@/components/post/PostTable";
 import { useState } from "react";
 
 const Post = () => {
-  const [addPost, setAddPost] = useState(false);
+  const [addPost, setAddPost] = useState(false);  
+
   return (
     <div
       className="p-3 bg-gray-100 overflow-y-scroll overflow-x-hidden border-red-600"
