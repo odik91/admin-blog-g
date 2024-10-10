@@ -1,4 +1,6 @@
 import { FormType } from "@/types/subcategoryType";
+import { api_url } from "@/utils/axios";
+import { useEffect } from "react";
 import {
   FormControl,
   FormField,
@@ -15,12 +17,46 @@ const InputImage = ({
   fieldName,
   maxSize,
   title,
+  defaultFile,
 }: {
   form: FormType;
   fieldName: InputFileProps;
   maxSize: number;
   title: string;
+  defaultFile?: string;
 }) => {
+  const fetchFileFromUrl = async (url: string) => {
+    if (defaultFile) {
+      try {
+        const response = await fetch(url, { mode: "no-cors" });
+        const blob = await response.blob();
+        const fileName = url.split("/").pop() || "downloaded_file";
+
+        let fileType = "";
+        if (response.type === "opaque") {
+          fileType = "image/png";
+        } else {
+          fileType = "image/png";
+        }
+
+        const newFile = new File([blob], fileName, { type: fileType });
+        
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(newFile);
+        const fileList = dataTransfer.files;
+        
+        form.setValue(fieldName, fileList);
+      } catch (error) {
+        console.error("Error fetching file:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchFileFromUrl(api_url + defaultFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultFile]);
+
   return (
     <FormField
       control={form.control}

@@ -20,7 +20,7 @@ import {
 } from "../ui/dropdown-menu";
 import { api_url } from "@/utils/axios";
 
-const PostTable = () => {
+const PostTable = ({ addPost }: { addPost: boolean }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [globalFilter, setGlobalFilter] = useState(
     searchParams.get("search") || ""
@@ -32,7 +32,7 @@ const PostTable = () => {
     pageSize: Number(searchParams.get("limit")) || 10,
   });
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // define post column
   const columns = useMemo<MRT_ColumnDef<PostMainData>[]>(
@@ -135,7 +135,7 @@ const PostTable = () => {
   const tableData = mainData?.data ?? []; // Access 'data' safely
   const meta = mainData?.meta ?? { totalRowCount: 0 };
 
-  const table = useMaterialReactTable({ 
+  const table = useMaterialReactTable({
     columns,
     data: tableData,
     manualFiltering: true,
@@ -239,7 +239,7 @@ const PostTable = () => {
   });
 
   return (
-    <div className="mt-3">
+    <div className={`mt-3 ${addPost ? "hidden" : ""}`}>
       <MaterialReactTable table={table} />
     </div>
   );

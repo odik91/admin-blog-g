@@ -1,4 +1,5 @@
 import { BreadCrumb } from "@/components";
+import SingePostEdit from "@/components/post/SingePostEdit";
 import SinglePostPreview from "@/components/post/SinglePostPreview";
 import { Button } from "@/components/ui/button";
 import { useGetSinglePost } from "@/hooks/actions/post";
@@ -18,7 +19,7 @@ const SinglePost = () => {
   const {
     data,
     // isError: isErrorGetSinglePost,
-    // isRefetching: isRefetchSinglePost,
+    isRefetching: isRefetchSinglePost,
     isLoading: isLoadingSinglePost,
   } = useGetSinglePost(id || "");
 
@@ -35,7 +36,7 @@ const SinglePost = () => {
     >
       <BreadCrumb link="/post" target="post" current={`detail post`} />
       <main className="m-2 p-3 bg-white rounded-md shadow-md">
-        {isLoadingSinglePost ? (
+        {isLoadingSinglePost || isRefetchSinglePost ? (
           <div className="flex justify-center item-center h-full w-full">
             <Triangle
               visible={true}
@@ -81,6 +82,8 @@ const SinglePost = () => {
               edit={edit}
               postContent={postContent}
             />
+
+            <SingePostEdit postData={singlePostData} edit={edit} setEdit={setEdit} />
           </div>
         )}
       </main>

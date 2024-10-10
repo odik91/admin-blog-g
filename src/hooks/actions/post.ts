@@ -97,7 +97,7 @@ export const useGetSinglePost = (id: string) => {
       try {
         if (!id) return null;
 
-        const response = await customFetch.get(`post/${id}`);
+        const response = await customFetch.get(`/post/${id}`);
         return response.data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
@@ -124,5 +124,47 @@ export const useGetSinglePost = (id: string) => {
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60, // cache in 1 minute
+  });
+};
+
+export const useUpdatePost = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (post: PostType) => {
+      try {
+        const formData = new FormData();
+        formData.append("category_id", post.category_id);
+        formData.append("subcategory_id", post.subcategory_id);
+        formData.append("title", post.title);
+        formData.append("meta_description", post.meta_description);
+        formData.append("meta_keyword", post.meta_keyword);
+        formData.append("seo_title", post.seo_title);
+        formData.append("content", post.content);
+        formData.append("is_active", post.is_active);
+
+        if (!post.oldImage) {
+          formData.append("image", post.image[0]);
+        }   
+        formData.append("_method", "PATCH");     
+
+        const response = await customFetch.post(`/post/${post.id}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        return response.data;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            dispatch(logoutUser());
+          }
+          return error.response;
+        }
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["post"] });
+    },
   });
 };

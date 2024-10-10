@@ -43,7 +43,7 @@ const InputText = ({
             {title} <span className="text-red-500">* </span>
             {maxLength && (
               <>
-                (<span className="text-red-500">{titleLength.chars}</span>/
+                (<span className="text-red-500">{titleLength.chars || field.value.toString().length}</span>/
                 {maxLength || 300}chars)
               </>
             )}

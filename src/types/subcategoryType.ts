@@ -21,15 +21,16 @@ export type OptionType = { value: string; label: string };
 
 export type FormType = UseFormReturn<
   {
-    category_id: string;
     title: string;
     content: string;
-    image: FileList;
-    subcategory_id: string;
     meta_description: string;
     meta_keyword: string;
     seo_title: string;
+    category_id: string;
+    subcategory_id: string;
     is_active: "active" | "inactive";
+    id?: string | undefined;
+    image: FileList;
   },
   unknown,
   undefined

@@ -9,6 +9,7 @@ export type PostType = {
   seo_title: string;
   content: string;
   is_active: "active" | "inactive";
+  oldImage?: string;
 };
 
 export type UserForData = {

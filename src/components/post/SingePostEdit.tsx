@@ -1,30 +1,38 @@
 import { useGetCategoriesNonFiltering } from "@/hooks/actions/category";
-import { useAddPost } from "@/hooks/actions/post";
-import { useGetSubcategoriesNonFiltering } from "@/hooks/actions/subcategory";
+import { PostMainData, PostType } from "@/types/postType";
 import { OptionType } from "@/types/subcategoryType";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CardContent, FormControl } from "@mui/material";
 import { Editor } from "@tinymce/tinymce-react";
 import { Controller, useForm } from "react-hook-form";
-import Swal from "sweetalert2";
 import { z } from "zod";
-import { Button } from "../ui/button";
-import { Card, CardHeader, CardTitle } from "../ui/card";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
-  Select,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { Separator } from "../ui/separator";
+import InputImage from "./InputImage";
+import InputText from "./InputText";
+import AsyncSelect from "react-select/async";
+import Select from "react-select";
+import {
+  Select as SelectUI,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Separator } from "../ui/separator";
-import InputImage from "./InputImage";
-import InputText from "./InputText";
-import SelectAsync from "./SelectAsync";
-import SelectSearch from "./SelectSearch";
+import { Button } from "../ui/button";
+import { useGetSubcategoriesNonFiltering } from "@/hooks/actions/subcategory";
+import { useUpdatePost } from "@/hooks/actions/post";
+import Swal from "sweetalert2";
 
 const formSchema = z.object({
+  id: z.string().optional(),
   category_id: z
     .string({ required_error: "Plesae select a value" })
     .min(1, { message: "Please select category" }),
@@ -39,7 +47,7 @@ const formSchema = z.object({
   image: z
     .instanceof(FileList, { message: "Image is required" })
     .refine((files) => files, { message: "Image is required" })
-    .refine((files) => files.length > 0, { message: "Image is required" })
+    // .refine((files) => files.length > 0, { message: "Image is required" })
     .refine(
       (files) => files.length === 0 || files[0]?.size <= 3 * 1024 * 1024, // 3MB max size
       { message: "File must be less than 3MB" }
@@ -48,6 +56,7 @@ const formSchema = z.object({
       (files) => files.length === 0 || files[0]?.type.startsWith("image/"), // Check file type
       { message: "Only image files are allowed" }
     ),
+  // .optional(),
   meta_description: z
     .string()
     .min(5, { message: "Please insert meta description" })
@@ -62,25 +71,30 @@ const formSchema = z.object({
   is_active: z.enum(["active", "inactive"]),
 });
 
-const AddPost = ({
-  addPost,
-  setAddPost,
+export type EditSinglePost = z.infer<typeof formSchema>;
+
+const SingePostEdit = ({
+  postData,
+  edit,
+  setEdit,
 }: {
-  addPost: boolean;
-  setAddPost: (status: boolean) => void;
+  postData: PostMainData;
+  edit: boolean;
+  setEdit: (status: boolean) => void;
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category_id: "",
-      subcategory_id: "",
-      title: "",
+      id: postData.id,
+      category_id: postData.category_id.toString(),
+      subcategory_id: postData.subcategory_id,
+      title: postData.title,
       image: undefined,
-      meta_description: "",
-      meta_keyword: "",
-      seo_title: "",
-      is_active: "inactive",
-      content: "",
+      meta_description: postData.meta_description,
+      meta_keyword: postData.meta_keyword,
+      seo_title: postData.seo_title,
+      is_active: postData.is_active === 1 ? "active" : "inactive",
+      content: postData.content,
     },
   });
 
@@ -89,47 +103,6 @@ const AddPost = ({
     setValue,
     formState: { errors },
   } = form;
-
-  // const fetchCategories = async (searchTerm = "") => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await customFetch.get(
-  //       `/category/non-sort${searchTerm ? `?search=${searchTerm}` : ``}`
-  //     );
-
-  //     setCategories(
-  //       response.data.map((category: { id: number; name: string }) => ({
-  //         value: category.id,
-  //         label: category.name,
-  //       }))
-  //     );
-  //   } catch (error: unknown) {
-  //     console.log(`Error fetching data: ${error}`);
-  //     if (axios.isAxiosError(error)) {
-  //       if (error.response?.status === 401) {
-  //         dispatch(logoutUser());
-  //       }
-  //     }
-  //     throw error;
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const debouncedFetchCategories = useCallback(
-  //   debounce((inputValue: string, callback) => {
-  //     fetchCategories(inputValue);
-  //     callback(categories); // Mengembalikan hasil kategori ke AsyncSelect
-  //   }, 500), // Waktu debounce 500ms
-  //   [categories]
-  // );
-
-  // const loadOptions = (
-  //   inputValue: string,
-  //   callback: (options: OptionType[]) => void
-  // ) => {
-  //   debouncedFetchCategories(inputValue, callback);
-  // };
 
   const { data: categories, isLoading: isCategoriesLoading } =
     useGetCategoriesNonFiltering();
@@ -144,17 +117,6 @@ const AddPost = ({
     );
   };
 
-  // const debounce = () => {
-  //   let timeoutID: number;
-  //   return (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-  //     setLocalSearch(e.target.value);
-  //     clearTimeout(timeoutID);
-  //     timeoutID = setTimeout(() => {
-  //       dispatch(handleChange({ name: e.target.name, value: e.target.value }));
-  //     }, 1000);
-  //   };
-  // };
-
   const loadOptions = (
     inputValue: string,
     callback: (options: OptionType[]) => void
@@ -168,48 +130,43 @@ const AddPost = ({
     form.watch("category_id")
   );
 
-  const { mutateAsync: addingPost, isPending: isAddPost } = useAddPost();
+  const { mutateAsync: editPost, isPending: isEditPost } = useUpdatePost();
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    addingPost(values).then((res) => {
-      console.log(res);
+    let data: PostType;
+    const oldImage = postData.image.split("/");
 
-      if (res) {
+    if (oldImage[oldImage.length - 1] === values.image[0].name) {
+      data = { ...values, oldImage: values.image[0].name };
+    } else {
+      data = values
+    }
+    
+    editPost(data).then((res) => {
+      if (res?.post) {
         Swal.fire({
           title: "Success!",
           icon: "success",
           html: res?.message,
         });
-        setAddPost(false);
-        return;
+        form.reset();
+        setEdit(false)
       } else {
         Swal.fire({
           title: "Error!",
           icon: "error",
-          html: "Fail to post article",
+          html: res?.message,
         });
       }
     });
   };
 
-  const setOpenForm = () => {
-    setAddPost(!addPost);
-    if (!addPost) {
-      form.reset();
-    }
-  };
-
-  return (
-    <>
-      <div className="flex justify-between items-center p-3 gap-3">
-        <Button variant="outline" onClick={setOpenForm}>
-          {!addPost ? "Add Post" : "Cancel"}
-        </Button>
-      </div>
-      {addPost && (
+  if (edit)
+    return (
+      <div className={`p-4 border rounded-md shadow-md my-3`}>
         <Card className="transform transition-all scale-100">
           <CardHeader className="bg-slate-50 p-3">
-            <CardTitle className="text-center text-xl">Add New Post</CardTitle>
+            <CardTitle className="text-center text-xl">Edit Post</CardTitle>
           </CardHeader>
           <Separator />
           <CardContent>
@@ -219,19 +176,84 @@ const AddPost = ({
                   <h1 className="font-semibold text-center">Section Title</h1>
                   <Separator className="my-3" />
                   {/* select category */}
-                  <SelectAsync
-                    form={form}
-                    loadOptions={loadOptions}
-                    categories={categories}
-                    isCategoriesLoading={isCategoriesLoading}
-                    isError={errors.category_id ? true : false}
+                  <FormField
+                    control={form.control}
+                    name="category_id"
+                    render={({ field }) => (
+                      <FormItem className="grid grid-cols-3 items-center gap-1">
+                        <FormLabel>
+                          Category{" "}
+                          <span className="text-red-500">*(Required)</span>
+                        </FormLabel>
+                        <FormControl className="col-span-2">
+                          <AsyncSelect
+                            className={
+                              errors.category_id
+                                ? "border border-red-500 rounded-sm"
+                                : form.getValues("category_id")
+                                ? "border border-green-500 rounded-sm"
+                                : ""
+                            }
+                            cacheOptions
+                            loadOptions={loadOptions}
+                            defaultOptions={categories}
+                            onChange={(option: OptionType | null) => {
+                              if (option) {
+                                form.resetField("subcategory_id");
+                                form.setValue("subcategory_id", "");
+                                form.clearErrors("category_id");
+                                return field.onChange(option.value.toString());
+                              }
+                            }}
+                            placeholder={
+                              postData.get_category.name || `Select Category`
+                            }
+                            isLoading={isCategoriesLoading}
+                          />
+                        </FormControl>
+                        <div></div>
+                        <FormMessage className="col-span-2" />
+                      </FormItem>
+                    )}
                   />
 
                   {/* Subcategory Field */}
-                  <SelectSearch
-                    form={form}
-                    dataSelect={subcategories}
-                    isError={errors.subcategory_id ? true : false}
+                  <FormField
+                    control={form.control}
+                    name="subcategory_id"
+                    render={({ field }) => (
+                      <FormItem className="grid grid-cols-3 items-center gap-1">
+                        <FormLabel>
+                          Subcategory <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-2">
+                          <Select
+                            className={
+                              errors.subcategory_id
+                                ? "border border-red-500 rounded-sm"
+                                : form.getValues("subcategory_id")
+                                ? "border border-green-500 rounded-sm"
+                                : ""
+                            }
+                            options={subcategories || []}
+                            {...field}
+                            value={
+                              subcategories?.find(
+                                (option: { value: string }) =>
+                                  option.value === field.value
+                              ) || null
+                            } // Map the value to an OptionType object
+                            onChange={(option: OptionType | null) => {
+                              const subcategory_data = option?.value || "";
+                              field.onChange(subcategory_data);
+                              form.setValue("subcategory_id", subcategory_data);
+                            }}
+                          />
+                        </FormControl>
+                        <div></div>
+                        <FormMessage className="col-span-2" />
+                      </FormItem>
+                    )}
                   />
 
                   {/* title */}
@@ -250,6 +272,7 @@ const AddPost = ({
                     fieldName="image"
                     maxSize={3}
                     title="Headline Image"
+                    defaultFile={postData.image}
                   />
                 </div>
 
@@ -298,7 +321,7 @@ const AddPost = ({
                     id="content"
                     apiKey={import.meta.env.VITE_EDITOR_API_KEY}
                     licenseKey={import.meta.env.VITE_EDITOR_LICENSE_KEY}
-                    initialValue="<p>Write your content here...</p>"
+                    initialValue={postData.content}
                     init={{
                       height: 300,
                       menubar: false,
@@ -329,7 +352,7 @@ const AddPost = ({
                         "forecolor backcolor emoticons | help",
                     }}
                     onEditorChange={(content) => {
-                      setValue("content", content); // Update form state when TinyMCE content changes
+                      setValue("content", content);
                     }}
                   />
                   {errors.content && (
@@ -353,7 +376,7 @@ const AddPost = ({
                               control={form.control}
                               defaultValue={field.value}
                               render={({ field: controllerField }) => (
-                                <Select
+                                <SelectUI
                                   value={controllerField.value}
                                   onValueChange={(value) =>
                                     controllerField.onChange(value)
@@ -376,7 +399,7 @@ const AddPost = ({
                                       No
                                     </SelectItem>
                                   </SelectContent>
-                                </Select>
+                                </SelectUI>
                               )}
                             />
                           </FormControl>
@@ -387,18 +410,29 @@ const AddPost = ({
                     />
                   </div>
                 </div>
-                <div className="flex items-center justify-center mt-3">
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setEdit(false);
+                      form.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
                   <Button type="submit" className="w-full">
-                    {isAddPost ? "Please wait..." : "Save"}
-                    {/* Save */}
+                    {isEditPost ? "Updating post..." : "Save"}
                   </Button>
                 </div>
               </form>
             </Form>
           </CardContent>
         </Card>
-      )}
-    </>
-  );
+      </div>
+    );
+
+  return null;
 };
-export default AddPost;
+export default SingePostEdit;
